@@ -1,0 +1,61 @@
+/*Styles pour le nav-bar*/
+.navbar {
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #0056b3;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+}
+
+.icon {
+  font-size: 1.8em;
+  margin-right: 10px;
+  text-shadow: 5px 1px 2px rgba(0, 0, 0, 0.3); /* shadow pour l'icône */
+
+}
+
+.title {
+  font-size: 1.4em;
+  font-weight: bold;
+}
+/*Styles pour le menu à gauche*/
+.main-layout {
+  display: flex;
+  height: 100vh;
+}
+
+.sidebar {
+  width: 200px;
+  background-color: #f8f9fa;
+  border-right: 1px solid #ddd;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar li {
+  margin: 15px 0;
+  cursor: pointer;
+  font-weight: 600;
+  color: #0056b3;
+  transition: color 0.2s, transform 0.2s ease;
+}
+
+.sidebar li:hover {
+  color: #003e86;
+  transform: scale(1.05); /* Zoom à 105% */
+}
+
+.main-content {
+  flex-grow: 1;
+  padding: 10px;
+  overflow-y: auto;
+}
