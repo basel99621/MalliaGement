@@ -1,1 +1,27 @@
-<div>Praticiens works</div>
+<label style="margin-bottom: 10px;" for="selectedPraticien">Sélectionnez un praticien : </label>
+<br>
+<div class="praticien-container">
+    <div>
+        <p-select [options]="praticiens" [(ngModel)]="selectedPraticien" optionLabel="nom" [filter]="true"
+            filterBy="nom" [showClear]="true" placeholder="Select a Country" class="w-full md:w-56">
+            <ng-template #selectedItem let-selectedOption>
+                <div class="flex items-center gap-2">
+                    <div>{{ selectedOption.nom }}</div>
+                </div>
+            </ng-template>
+            <ng-template let-praticien #item>
+                <div class="flex items-center gap-2">
+                    <div>{{ praticien.nom }}</div>
+                </div>
+            </ng-template>
+        </p-select>
+    </div>
+    <div class="action-boutons">
+        <p-button label="Ajouter" [raised]="true" severity="success" />
+        <ng-container *ngIf="selectedPraticien">
+            <p-button icon="pi pi-pen-to-square" severity="secondary" />
+            <p-button icon="pi pi-trash" severity="danger" />
+        </ng-container>
+
+    </div>
+</div>

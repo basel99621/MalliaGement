@@ -1,12 +1,17 @@
 import { Component } from '@angular/core';
 import { Practitioner } from '../shared/models/practitionner.model';
 import { Appointment } from '../shared/models/appointment.model';
+import { ButtonModule } from 'primeng/button';
+import { SelectModule } from 'primeng/select';
+import { FormsModule } from '@angular/forms';
+import { NgIf } from '@angular/common'; // ⬅️ nécessaire
+
 
 @Component({
   selector: 'app-mallia-gement-app',
-  imports: [],
+  imports: [ ButtonModule, SelectModule, FormsModule, NgIf],
   templateUrl: './mallia-gement-app.component.html',
-  styleUrl: './mallia-gement-app.component.scss',
+  styleUrl: './mallia-gement-app.component.scss'
 })
 export class MalliaGementAppComponent {
 
@@ -33,4 +38,10 @@ appointments: Appointment []  = [
 ];
 
 
+test(event:any)
+{
+  this.selectedPraticien = event.value
+console.log(this.selectedPraticien);
+
+}
 }
