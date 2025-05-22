@@ -5,8 +5,17 @@ export interface Practitioner {
 
   /** Identifiant RPPS (obligatoire, selon votre profil) */
   identifier: Array<{
-    system: 'https://esante.gouv.fr/produits-services/repertoire-rpps';
-    value: string;  // RPPS
+    use : 'official' | 'usual' | 'temp' | 'secondary' | 'old';
+    // On autorise soit l’URL RPPS, soit un matricule interne
+    system: 'https://esante.gouv.fr/produits-services/repertoire-rpps' | 'https://hl7.fr/ig/fhir/core/CodeSystem/fr-core-cs-v2-0203';
+    value: string;
+    type?: {
+      text: string;
+      coding: Array<{
+        code: string;
+        display: string;
+      }>;
+    };
   }>;
 
   /** Nom et prénom (1..1) */
