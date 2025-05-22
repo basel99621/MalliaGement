@@ -56,7 +56,7 @@ export class FhirService {
   private upsertPractitioner(input: PractitionerWithRoleInput): Observable<Practitioner> {
     const resource: Practitioner = {
       resourceType: 'Practitioner',
-      id: input.rpps,
+      id: "ID-" +input.rpps,
       identifier: [
         {
           use: 'official',
@@ -108,7 +108,7 @@ export class FhirService {
     };
 
     return this.http.put<Practitioner>(
-      `${this.base}/Practitioner/${input.rpps}`,
+      `${this.base}/Practitioner/ID-${input.rpps}`,
       resource,
       { headers: this.headers }
     );
@@ -121,7 +121,7 @@ export class FhirService {
       identifier: [
         { system: 'https://esante.gouv.fr/produits-services/repertoire-rpps', value: input.rpps }
       ],
-      practitioner: { reference: `Practitioner/${input.rpps}` },
+      practitioner: { reference: `Practitioner/ID-${input.rpps}` },
       code: [{ coding: [ input.specialty ] }],
       organization: { reference: `Organization/${input.organizationId}` },
       period: {
