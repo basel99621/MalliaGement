@@ -4,3 +4,4 @@ export interface Practitioner {
   spécialité: string;
   email: string;
 }
+
