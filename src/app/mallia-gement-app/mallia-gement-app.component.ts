@@ -1,10 +1,10 @@
 import { Component } from '@angular/core';
-import { Practitioner } from '../shared/models/practitionner.model';
 import { Appointment } from '../shared/models/appointment.model';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
 import { NgIf } from '@angular/common'; // ⬅️ nécessaire
+import { Practitioner } from '../shared/models/practitioner.model';
 
 
 @Component({
@@ -15,11 +15,7 @@ import { NgIf } from '@angular/common'; // ⬅️ nécessaire
 })
 export class MalliaGementAppComponent {
 
-  praticiens: Practitioner [] =  [
-  { id: 1, nom: 'Dr. Martin Dupuis', spécialité: 'Cardiologue', email: 'martin.dupuis@hopital.fr' },
-  { id: 2, nom: 'Dr. Sophie Bernard', spécialité: 'Dermatologue', email: 'sophie.bernard@hopital.fr' },
-  { id: 3, nom: 'Dr. Julien Fabre', spécialité: 'Pédiatre', email: 'julien.fabre@hopital.fr' },
-];
+  
 
 selectedPraticien: Practitioner | undefined;
 
@@ -38,10 +34,7 @@ appointments: Appointment []  = [
 ];
 
 
-test(event:any)
-{
-  this.selectedPraticien = event.value
-console.log(this.selectedPraticien);
+openPraticienPopUp(){
 
 }
 }

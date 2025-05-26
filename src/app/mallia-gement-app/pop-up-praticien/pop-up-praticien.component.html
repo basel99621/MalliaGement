@@ -1,0 +1,66 @@
+
+<div class="grid" >
+    <div class="col-6">
+        <div class="col-3">
+            <label for="rpps" style="margin-right: 3px;" formControlName="family">RPPS </label>
+            <input type="text" pInputText [(ngModel)]="rpps" />
+        </div>
+        <div class="col-3">
+            <label for="rpps" style="margin-right: 3px;">Nom </label>
+            <input type="text" pInputText [(ngModel)]="rpps" />
+        </div>
+        <div class="col-6">
+            <label for="rpps" style="margin-right: 3px;">Prénom(s) </label>
+            <input type="text" pInputText [(ngModel)]="rpps" />
+        </div>
+        <div class="col-9">
+            <label for="rpps" style="margin-right: 3px;">Date de naissance </label>
+            <p-datepicker [(ngModel)]="dateNaissance" [showIcon]="true" appendTo="body" inputId="buttondisplay"
+                [showOnFocus]="false" />
+        </div>
+        <div class="col-9">
+            <label for="rpps" style="margin-right: 3px;">Genre  </label>
+            <p-select [options]="genres" [(ngModel)]="selectedGenre" optionLabel="name" appendTo="body"
+                placeholder="Sélectionnez un genre" class="w-full md:w-56" />
+        </div>
+        <div class="col-6">
+            <label for="rpps" style="margin-right: 3px;"> Pays  </label>
+            <input type="text" pInputText [(ngModel)]="rpps" />
+        </div>
+    </div>
+    <div class="col-6">
+        <div class="col-6">
+            <label for="rpps" style="margin-right: 3px;">Adresse mail  </label>
+            <input type="text" pInputText [(ngModel)]="rpps" />
+        </div>
+        <div class="col-6">
+            <label for="rpps" style="margin-right: 3px;">Numéro de téléphone  </label>
+            <input type="text" pInputText [(ngModel)]="rpps" />
+        </div>
+        <div class="col-6">
+            <label for="rpps" style="margin-right: 3px;"> Numéro de poste  </label>
+            <input type="text" pInputText [(ngModel)]="rpps" />
+        </div>
+
+        <div class="col-6">
+            <label for="rpps" style="margin-right: 3px;">Adresse postale  </label>
+            <input type="text" pInputText [(ngModel)]="rpps" />
+        </div>
+        <div class="col-6">
+            <label for="rpps" style="margin-right: 3px;">Code postale  </label>
+            <input type="text" pInputText [(ngModel)]="rpps" />
+        </div>
+        <div class="col-6">
+            <label for="rpps" style="margin-right: 3px;"> Ville  </label>
+            <input type="text" pInputText [(ngModel)]="rpps" />
+        </div>
+        
+    </div>
+</div>
+
+
+
+<div class="boutons">
+    <p-button class="cancel-button" label="Annuler" severity="contrast" />
+    <p-button label="Valider" severity="success"  />
+</div>

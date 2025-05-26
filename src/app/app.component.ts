@@ -4,9 +4,10 @@ import { MalliaGementAppComponent } from "./mallia-gement-app/mallia-gement-app.
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, MalliaGementAppComponent],
+  imports: [RouterOutlet],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.scss'
+  styleUrl: './app.component.scss',
+  
 })
 export class AppComponent {
   title = 'MalliaGement';

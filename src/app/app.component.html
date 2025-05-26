@@ -9,9 +9,17 @@
     <ul>
       <li routerLink="/praticiens" >👨‍⚕️ Praticiens</li>
     </ul>
+     <ul>
+      <li routerLink="/praticiens" >👨‍⚕️ Consultation de rendez-vous</li>
+    </ul>
   </aside>
 
   <main class="main-content">
     <router-outlet></router-outlet>
   </main>
 </div>
+
+<!-- <p-autoComplete [(ngModel)]="selectedCollaborateur" [suggestions]="collaborateurs" field="getDisplayWithZadig"
+      (completeMethod)="searchCollaborateur($event)" (onSelect)="onPersonnelChange()"
+      placeholder="Recherchez un collaborateur">
+    </p-autoComplete> -->
