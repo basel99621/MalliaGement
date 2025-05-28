@@ -25,7 +25,8 @@ export interface Practitioner {
   };
 
   /** Genre, date de naissance, adresse… hérités de FR-Core (optionnels) */
-  gender?: 'Homme' | 'Femme' | 'Autre' | 'Unconnu';
+// practitioner.model.ts
+  gender?: "male" | "female" | "unknown" | "other" | undefined;
   birthDate?: string; // YYYY-MM-DD
 
   /** Télécom slicé en email, téléphone pro (work) et autres */

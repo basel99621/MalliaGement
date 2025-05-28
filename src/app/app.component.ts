@@ -4,7 +4,7 @@ import { MalliaGementAppComponent } from "./mallia-gement-app/mallia-gement-app.
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, MalliaGementAppComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
   

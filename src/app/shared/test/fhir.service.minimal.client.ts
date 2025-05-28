@@ -24,6 +24,22 @@ async function getPractitioners(count = 5) {
   }
 }
 
+// GET /Organisation
+async function getOrganisations() {
+  const url = `${base}/Organization`;
+  console.log('GET', url, { headers });
+  try {
+    const res = await fetch(url, { headers });
+    if (!res.ok) throw new Error(`HTTP error! Status: ${res.status} ${res.statusText}`);
+    const data = await res.json();
+    console.log('RESPONSE', data);
+    return data;
+  } catch (error) {
+    console.error('ERROR in getPractitioners:', error);
+    throw error;
+  }
+}
+
 // GET /Practitioner?identifier=https://esante.gouv.fr/produits-services/repertoire-rpps|{rpps}
 async function getPractitionerByRpps(rpps: string) {
   const url = `${base}/Practitioner?identifier=https://esante.gouv.fr/produits-services/repertoire-rpps%7C${rpps}`;
@@ -76,6 +92,8 @@ async function createPractitionerWithRoles(input: {
     organizationId: string;
   }>;
 }) {
+  console.log(input);
+  
   // 1) Crée le Practitioner (POST)
   const practitionerResource = {
     resourceType: 'Practitioner',
@@ -144,6 +162,7 @@ async function createPractitionerWithRoles(input: {
     const roleData = await roleRes.json();
     console.log('RESPONSE PractitionerRole:', roleData);
     rolesCreated.push(roleData);
+  
   }
   return { practitioner: practitionerData, roles: rolesCreated };
 }
@@ -197,7 +216,8 @@ export {
   getPractitionerByRpps,
   getAppointmentsByPractitionerId,
   getAppointmentsByPractitionerRpps,
-  createPractitionerWithRoles
+  createPractitionerWithRoles,
+  getOrganisations
 };
 
 

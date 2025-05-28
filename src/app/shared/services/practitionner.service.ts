@@ -80,6 +80,9 @@ export class FhirService {
     return this.http.post<Practitioner>(`${this.base}/Practitioner`, resource, { headers: this.headers });
   }
 
+   
+
+
   /**
    * 2) Crée un PractitionerRole pour un rôle donné
    */
@@ -123,6 +126,16 @@ export class FhirService {
   getPractitioners(count = 5): Observable<any> {
     const params = new HttpParams().set('_count', count.toString());
     return this.http.get(`${this.base}/Practitioner`, { headers: this.headers, params });
+  }
+
+  /** GET Organisations*/
+  getOrganisations(): Observable<any> {
+    return this.http.get(`${this.base}/Organization`);
+  }
+
+   /** GET Practitioner?_count={count} */
+  getSpecialites(): Observable<any> {
+    return this.http.get(`${this.base}/ValueSet/130`);
   }
 
   /** GET Practitioner by RPPS */

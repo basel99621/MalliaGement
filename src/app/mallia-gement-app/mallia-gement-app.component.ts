@@ -5,13 +5,19 @@ import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
 import { NgIf } from '@angular/common'; // ⬅️ nécessaire
 import { Practitioner } from '../shared/models/practitioner.model';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { PopUpPraticienComponent } from './pop-up-praticien/pop-up-praticien.component';
+import { MessageService } from 'primeng/api';
+
 
 
 @Component({
   selector: 'app-mallia-gement-app',
   imports: [ ButtonModule, SelectModule, FormsModule, NgIf],
   templateUrl: './mallia-gement-app.component.html',
-  styleUrl: './mallia-gement-app.component.scss'
+  styleUrl: './mallia-gement-app.component.scss',
+  providers: [DialogService, MessageService]
+
 })
 export class MalliaGementAppComponent {
 
@@ -19,22 +25,28 @@ export class MalliaGementAppComponent {
 
 selectedPraticien: Practitioner | undefined;
 
-appointments: Appointment []  = [
-  { id: 1, praticienId: 1, date: '2025-05-21', heure: '09:00', patient: 'Alice Morel' },
-  { id: 2, praticienId: 1, date: '2025-05-21', heure: '10:00', patient: 'Bruno Delmas' },
-  { id: 3, praticienId: 1, date: '2025-05-21', heure: '11:00', patient: 'Claire Petit' },
-
-  { id: 4, praticienId: 2, date: '2025-05-21', heure: '09:30', patient: 'David Lopez' },
-  { id: 5, praticienId: 2, date: '2025-05-21', heure: '10:30', patient: 'Emma Chevalier' },
-  { id: 6, praticienId: 2, date: '2025-05-21', heure: '11:30', patient: 'Fabrice Marchal' },
-
-  { id: 7, praticienId: 3, date: '2025-05-21', heure: '08:45', patient: 'Gabriel Roussel' },
-  { id: 8, praticienId: 3, date: '2025-05-21', heure: '09:45', patient: 'Hélène Caron' },
-  { id: 9, praticienId: 3, date: '2025-05-21', heure: '10:45', patient: 'Isabelle Granger' },
-];
+ref: DynamicDialogRef | undefined;
+constructor(public dialogService: DialogService, public messageService: MessageService) {}
 
 
 openPraticienPopUp(){
+    this.ref = this.dialogService.open(PopUpPraticienComponent, {
+            header: 'Select a Product',
+            width: '70%',
+            contentStyle: { overflow: 'auto', height:'auto' },
+            baseZIndex: 10000,
+            data:{
+                    ref:this.ref
+            }
+                
+            
+        });
+
+        this.ref.onClose.subscribe((product) => {
+            if (product) {
+                this.messageService.add({ severity: 'info', summary: 'Product Selected', detail: product.name });
+            }
+        });
 
 }
 }
