@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable, forkJoin, of } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { Observable, forkJoin, of, throwError } from 'rxjs';
+import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { Practitioner } from '../models/practitioner.model';
 import { PractitionerRole } from '../models/practitioner-role.model';
 
@@ -123,15 +123,80 @@ export class FhirService {
 }
 
 
-  supprimerPraticien(id: number): Observable<Practitioner> {
-    return this.http.delete<Practitioner>(`${this.base}/Practitioner/${id}`);
-  }
+supprimerPraticienAvecRelations(id: string): Observable<any> {
+  return forkJoin({
+    roles: this.getRolesByPractitionerId(id),
+    appointments: this.getAppointmentsByPractitionerId(id).pipe(
+      map((bundle: any) =>
+        Array.isArray(bundle.entry) ? bundle.entry.map((e: any) => e.resource) : []
+      )
+    ),
+    schedules: this.getSchedulesByPractitionerId(id).pipe(
+      map((bundle: any) =>
+        Array.isArray(bundle.entry) ? bundle.entry.map((e: any) => e.resource) : []
+      )
+    )
+  }).pipe(
+    switchMap(({ roles, appointments, schedules }) => {
+      const deleteRequests: Observable<any>[] = [];
 
-   supprimerPraticienRole(id: number): Observable<PractitionerRole> {
-    return this.http.delete<PractitionerRole>(`${this.base}/PractitionerRole/${id}`);
-  }
+      // Supprimer les rôles
+      if (Array.isArray(roles)) {
+        roles.forEach(role => {
+          deleteRequests.push(
+            this.http.delete(`${this.base}/PractitionerRole/${role.id}`).pipe(
+              catchError(err => {
+                console.warn('Échec suppression PractitionerRole:', role.id, err);
+                return of(null);
+              })
+            )
+          );
+        });
+      }
 
+      // Supprimer les rendez-vous
+      if (Array.isArray(appointments)) {
+        appointments.forEach(appointment => {
+          deleteRequests.push(
+            this.http.delete(`${this.base}/Appointment/${appointment.id}`).pipe(
+              catchError(err => {
+                console.warn('Échec suppression Appointment:', appointment.id, err);
+                return of(null);
+              })
+            )
+          );
+        });
+      }
 
+      // Supprimer les horaires
+      if (Array.isArray(schedules)) {
+        schedules.forEach(schedule => {
+          deleteRequests.push(
+            this.http.delete(`${this.base}/Schedule/${schedule.id}`).pipe(
+              catchError(err => {
+                console.warn('Échec suppression Schedule:', schedule.id, err);
+                return of(null);
+              })
+            )
+          );
+        });
+      }
+
+      // Suppression finale du praticien
+      return forkJoin(deleteRequests).pipe(
+        switchMap(() =>
+          this.http.delete(`${this.base}/Practitioner/${id}`).pipe(
+            tap(() => console.log(`✅ Practitioner/${id} supprimé`)),
+            catchError(err => {
+              console.error(`❌ Échec suppression Practitioner/${id}`, err);
+              return throwError(() => err);
+            })
+          )
+        )
+      );
+    })
+  );
+}
 
 
   /**
@@ -238,6 +303,35 @@ createPractitionerWithRoles(input: PractitionerWithRoleInput): Observable<{ prac
   );
 }
 
+getAllPracticiensWithDetails(): Observable<PractitionerWithDetails[]> {
+  return this.getAllPraticiens().pipe(
+    switchMap((bundle: any) => {
+      const entries = bundle.entry || [];
+      const practitioners = entries
+        .filter((e: any) => e.resource?.resourceType === 'Practitioner')
+        .map((e: any) => e.resource);
+
+      const requests: Observable<PractitionerWithDetails>[] = practitioners.map((pract: any) =>
+        forkJoin({
+          roles: this.getRolesByPractitionerId(pract.id),
+          appointments: this.getAppointmentsByPractitionerId(pract.id),
+          schedules: this.getSchedulesByPractitionerId(pract.id)
+        }).pipe(
+          map(({ roles, appointments, schedules }) => ({
+            practitioner: pract,
+            roles,
+            appointments,
+            schedules
+          }))
+        )
+      );
+
+      return forkJoin(requests);
+    })
+  );
+}
+
+
 
 getRolesByPractitionerId(practitionerId: string): Observable<any[]> {
   return this.http.get<any>(`${this.base}/PractitionerRole?practitioner=Practitioner/${practitionerId}`).pipe(
@@ -264,6 +358,11 @@ getRolesByPractitionerId(practitionerId: string): Observable<any[]> {
     const params = new HttpParams().set('actor', `Practitioner/${id}`);
     return this.http.get(`${this.base}/Appointment`, { headers: this.headers, params });
   }
+  /** GET Appointment?actor=Practitioner/{id} */
+  getSchedulesByPractitionerId(id: string): Observable<any> {
+    const params = new HttpParams().set('actor', `Practitioner/${id}`);
+    return this.http.get(`${this.base}/Schedule`, { headers: this.headers, params });
+  }
 
   /** GET Appointment by RPPS (enchaîné) */
   getAppointmentsByPractitionerRpps(rpps: string): Observable<any> {
@@ -282,6 +381,13 @@ getRolesByPractitionerId(practitionerId: string): Observable<any[]> {
 export interface PractitionerWithRoles {
   practitioner: any; // ou de type `Practitioner` si typé
   roles: any[];      // ou `PractitionerRole[]`
+}
+
+interface PractitionerWithDetails {
+  practitioner: any;
+  roles: any[];
+  appointments: any[];
+  schedules: any[];
 }
 
 /*EXEMPLE D'UTILISATION

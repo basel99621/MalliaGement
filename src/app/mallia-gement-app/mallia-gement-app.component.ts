@@ -29,12 +29,16 @@ export class MalliaGementAppComponent {
 
   selectedPraticienToUpdate: Practitioner | undefined;
 
+  allOrganistions: Organisation[] = [];
+
   ref: DynamicDialogRef | undefined;
   allPraticiens: Praticien[] = [];
 
-  allPraticiensWithRole: Practitioner [] = []; 
+  allPraticiensWithWithDetails: any[] = [];
 
   allPraticiensRole: PraticienRole[] = [];
+
+  specialites: any[] = [];
 
   constructor(public dialogService: DialogService,
     public messageService: MessageService,
@@ -43,22 +47,36 @@ export class MalliaGementAppComponent {
 
   ngOnInit() {
 
-    this.fhirService.getAllPracticiensWithRoles().subscribe(t => {
-      console.log("pr w r",t);
-      
-    })
-    this.fhirService.getAllPraticiens().subscribe(praticiens => {
-      
-      
 
-      if (Array.isArray(praticiens.entry)) {
-        this.allPraticiensWithRole  = praticiens.entry;
-        
-        praticiens.entry.forEach((pr: any) => {
+    this.fhirService.getSpecialites().subscribe(specialites => {
+      this.specialites = specialites.expansion.contains;
+    });
+
+    this.fhirService.getOrganisations().subscribe(organisations => {
+      if (Array.isArray(organisations.entry)) {
+        organisations.entry.forEach((org: any) => {
+          const organisation: Organisation = {
+            id: org.resource.id,
+            nom: org.resource.name
+          };
+          this.allOrganistions.push(organisation)
+        });
+      } else {
+        console.error('organisations n\'est pas un tableau :', organisations);
+      }
+    });
+    this.fhirService.getAllPracticiensWithDetails().subscribe(praticiens => {
+
+
+
+      if (Array.isArray(praticiens)) {
+        this.allPraticiensWithWithDetails = praticiens;
+
+        praticiens.forEach((pr: any) => {
           let praticien: Praticien = new Praticien({
-            id: pr.resource.id,
-            nom: pr.resource.name[0].family,
-            prenom: pr.resource.name[0].given[0],
+            id: pr.practitioner.id,
+            nom: pr.practitioner.name[0].family,
+            prenom: pr.practitioner.name[0].given[0],
           })
           this.allPraticiens.push(praticien);
         });
@@ -87,61 +105,67 @@ export class MalliaGementAppComponent {
   }
 
 
-  openPraticienPopUp(add: boolean) { 
-    if(add){
-       this.ref = this.dialogService.open(PopUpPraticienComponent, {
-      header: 'Ajouter un praticien',
-      width: '70%',
-      contentStyle: { overflow: 'auto', height: 'auto' },
-      baseZIndex: 10000,
-    });
+  openPraticienPopUp(add: boolean) {
+    if (add) {
+      this.ref = this.dialogService.open(PopUpPraticienComponent, {
+        header: 'Ajouter un praticien',
+        width: '90%',
+        contentStyle: { overflow: 'auto', height: 'auto' },
+        baseZIndex: 10000,
+        data: {
+          specialites: this.specialites,
+          organisations: this.allOrganistions
+        }
+      });
 
-    this.ref.onClose.subscribe((praticien) => {
-      
-      if (praticien) {
-        let newPraticien: Praticien = new Praticien({
+      this.ref.onClose.subscribe((praticien) => {
+
+        if (praticien) {
+          let newPraticien: Praticien = new Praticien({
             id: praticien.practitioner.id,
             nom: praticien.practitioner.name[0].family,
             prenom: praticien.practitioner.name[0].given[0],
           });
-        
 
-        this.allPraticiens.push(newPraticien);
 
-        this.messageService.add({ severity: 'success', summary: 'Success', detail: "Le praticien a été ajouté avec succèss !" });
-      } else if (praticien == true) {
-         this.messageService.add({ severity: 'errors', summary: 'Error', detail: "Une erreur est survenue !" });
-      }
-    });
+          this.allPraticiens.push(newPraticien);
+
+          this.messageService.add({ severity: 'success', summary: 'Success', detail: "Le praticien a été ajouté avec succèss !" });
+        } else if (praticien == true) {
+          this.messageService.add({ severity: 'errors', summary: 'Error', detail: "Une erreur est survenue !" });
+        }
+
+      });
     } else {
-       this.selectedPraticienToUpdate = this.allPraticiensWithRole.find((en : any) => en.resource.id == this.selectedPraticien?.id)
-       
-       this.ref = this.dialogService.open(PopUpPraticienComponent, {
-      header: 'Modifier un praticien',
-      width: '70%',
-      contentStyle: { overflow: 'auto', height: 'auto' },
-      baseZIndex: 10000,
-      data:{
-        selectedPraticien : this.selectedPraticienToUpdate,
-      }
-    });
+      this.selectedPraticienToUpdate = this.allPraticiensWithWithDetails.find((en: any) => en.practitioner.id == this.selectedPraticien?.id)
+      this.ref = this.dialogService.open(PopUpPraticienComponent, {
+        header: 'Modifier un praticien',
+        width: '70%',
+        contentStyle: { overflow: 'auto', height: 'auto' },
+        baseZIndex: 10000,
+        data: {
+          selectedPraticien: this.selectedPraticienToUpdate,
+          specialites: this.specialites,
+          organisations: this.allOrganistions
+        }
+      });
 
-    this.ref.onClose.subscribe((praticien) => {
-      if (praticien) {
-        this.messageService.add({ severity: 'success', summary: 'Success', detail: "Le praticien a été ajouté avec succèss !" });
-      } else if (praticien == true) {
-        // this.messageService.add({ severity: 'errors', summary: 'Error', detail: "Une erreur est survenue !" });
-      }
-    });
+      this.ref.onClose.subscribe((praticien) => {
+        if (praticien) {
+          this.messageService.add({ severity: 'success', summary: 'Success', detail: "Le praticien a été ajouté avec succèss !" });
+        } else if (praticien == true) {
+          this.messageService.add({ severity: 'errors', summary: 'Error', detail: "Une erreur est survenue !" });
+        }
+      });
     }
-   
+
 
   }
 
   confirm1(event: Event) {
     this.confirmationService.confirm({
       target: event.target as EventTarget,
-      message: 'Souhaitez-vous supprimer le praticien <b>' + this.selectedPraticien?.getNomPrenom() +"</b> ?" +"</br>"+"<b>Attention </b>: Tous ses rendez-vous et rôles seront supprimés également.",
+      message: 'Souhaitez-vous supprimer le praticien <b>' + this.selectedPraticien?.getNomPrenom() + "</b> ?" + "</br>" + "<b>Attention </b>: Tous ses rendez-vous et rôles seront supprimés également.",
       header: 'Confirmation',
       closable: true,
       closeOnEscape: true,
@@ -157,11 +181,9 @@ export class MalliaGementAppComponent {
       accept: () => {
         if (this.selectedPraticien?.id !== undefined) {
           const praticienId = this.selectedPraticien.id;
-
-          const praticienRoleId = this.allPraticiensRole.find(pR => pR.praticientId === praticienId)?.id;
-
-          const supprimerPraticien = () => {
-            this.fhirService.supprimerPraticien(praticienId).subscribe(() => {
+          
+          this.fhirService.supprimerPraticienAvecRelations(praticienId.toString()).subscribe({
+            next: () => {
               this.messageService.add({
                 severity: 'success',
                 summary: 'Succès',
@@ -169,16 +191,18 @@ export class MalliaGementAppComponent {
               });
               this.allPraticiens = this.allPraticiens.filter(p => p.id !== praticienId);
               this.selectedPraticien = null;
-            });
-          };
+            },
+            error: (error) => {
+              console.error('Erreur lors de la suppression du praticien :', error);
 
-          if (praticienRoleId !== undefined) {
-            this.fhirService.supprimerPraticienRole(praticienRoleId).subscribe(() => {
-              supprimerPraticien();
-            });
-          } else {
-            supprimerPraticien();
-          }
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Échec',
+                detail: 'Erreur pendant la suppression du praticien'
+              });
+            }
+          });
+
         }
       },
       reject: () => {
@@ -211,3 +235,13 @@ export class PraticienRole {
   }
 
 }
+
+export class Organisation {
+  id: number | undefined;
+  nom: string | undefined;
+  constructor(init: Partial<Organisation>) {
+    Object.assign(this, init);
+  }
+}
+
+

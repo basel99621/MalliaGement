@@ -13,6 +13,7 @@ import { FhirService } from '../../shared/services/practitionner.service';
 import { TableModule } from 'primeng/table';
 import { PractitionerRole } from '../../shared/models/practitioner-role.model';
 import { MessageService } from 'primeng/api';
+import { Organisation } from '../mallia-gement-app.component';
 
 
 
@@ -28,6 +29,7 @@ export class PopUpPraticienComponent {
   dateNaissance: Date | undefined;
   allOrganistions: Organisation[] = [];
   praticiensRoles: PractitionerRole[] = [];
+  specialties: any[] = [];
 
   genres: { id: string, name: string }[] = [
     { id: 'male', name: 'Homme' },
@@ -40,7 +42,6 @@ export class PopUpPraticienComponent {
 
   practitionerForm: FormGroup;
 
-  specialites: any[] = [];
 
 
   constructor(private fb: FormBuilder, private fhirService: FhirService, private ref: DynamicDialogRef, private messageService: MessageService, private config: DynamicDialogConfig) {
@@ -68,7 +69,7 @@ export class PopUpPraticienComponent {
         })
       ]),
       photoBase64: [''],
-      roles: this.fb.array([])
+      roles: this.fb.array([], Validators.required)
     });
   }
 
@@ -85,12 +86,15 @@ export class PopUpPraticienComponent {
     return this.practitionerForm.get('roles') as FormArray;
   }
   ngOnInit() {
-    if (this.config.data) {
-      const res = this.config.data.selectedPraticien.resource;
+     this.specialties = this.config.data.specialites;
+      this.allOrganistions = this.config.data.organisations;
+    if (this.config.data.selectedPraticien) {
+      const res = this.config.data.selectedPraticien;
+
 
       // Extraction des données du Practitioner FHIR
-      const name = res.name?.[0] || {};
-      const identifier = res.identifier || [];
+      const name = res.practitioner.name?.[0] || {};
+      const identifier = res.practitioner.identifier || [];
 
       const rpps = identifier.find((id: any) => id.system?.includes('rpps'))?.value || '';
       const matricule = identifier.find((id: any) => id.system?.includes('matricule'))?.value || '';
@@ -105,7 +109,7 @@ export class PopUpPraticienComponent {
         birthDate: res.birthDate || '',
         city: res.address?.[0]?.city || '',
         postalCode: res.address?.[0]?.postalCode || '',
-        country: res.address?.[0]?.country || ''
+        country: res.address?.[0]?.country || '',
       });
 
       // Adresses
@@ -125,38 +129,50 @@ export class PopUpPraticienComponent {
         );
         this.practitionerForm.setControl('telecom', this.fb.array(telecomArray));
       }
-    }
+      
+// Rôles
+      if (res.roles && Array.isArray(res.roles)) {
+        const roleControls = res.roles.map((role: any) => {
+          const coding = role.code?.[0]?.coding?.[0] || {};
+          const organizationRef = role.location[0]?.reference || '';
+          const organizationId = organizationRef.split('/')?.[1] || '';
+          const speciality: any = this.specialties.find(s => s.code == coding.code);
 
-    this.fhirService.getOrganisations().subscribe(organisations => {
-      if (Array.isArray(organisations.entry)) {
-        organisations.entry.forEach((org: any) => {
-          const organisation: Organisation = {
-            id: org.resource.id,
-            nom: org.resource.name
-          };
-          this.allOrganistions.push(organisation)
+
+          return this.fb.group({
+            serviceStart: [new Date(role.period?.start) || '', Validators.required],
+            serviceEnd: [role.period?.end || ''],
+            specialty: this.fb.group({
+              system: [speciality.system || 'http://snomed.info/sct'],
+              code: [speciality.code || '', Validators.required],
+              display: [speciality.display || '']
+            }),
+            organizationId: [organizationId, Validators.required]
+          });
         });
 
-      } else {
-        console.error('organisations n\'est pas un tableau :', organisations);
+        this.practitionerForm.setControl('roles', this.fb.array(roleControls));
       }
-    });
 
-    this.fhirService.getSpecialites().subscribe(specialites => {
-      specialites.expansion.contains.forEach((spe: any) => {
-        this.specialites.push(spe);
-      });
-    });
+    } else {
+
+      this.ajouterRole();
+
+    }
+
+
+
+
   }
-
 
   closePopUp() {
     this.ref?.close()
   }
 
   submitForm() {
-    if (this.config.data) {
-      this.fhirService.updatePractitioner(this.config.data.selectedPraticien.resource.id, this.practitionerForm.value).subscribe(
+    if (this.config.data.selectedPraticien) {
+      
+      this.fhirService.updatePractitioner(this.config.data.selectedPraticien.practitioner.id, this.practitionerForm.value).subscribe(
         (praticien) => {
           this.ref?.close(praticien)
 
@@ -164,25 +180,20 @@ export class PopUpPraticienComponent {
         (error) => {
           console.error(error);
           this.ref?.close(true)
-        }
-      )
+        })
 
     } else {
       this.fhirService.createPractitionerWithRoles(this.practitionerForm.value).subscribe(
         (praticien) => {
-          
           this.ref?.close(praticien);
         },
         (error) => {
           console.error(error);
           this.ref?.close(true)
-        }
-      )
-
+        });
     }
-
-
   }
+
   ajouterRole(): void {
     const nouveauRole = this.fb.group({
       serviceStart: ['', Validators.required],
@@ -197,7 +208,6 @@ export class PopUpPraticienComponent {
 
     this.roles.push(nouveauRole);
   }
-
   removeRole(index: number): void {
     this.roles.removeAt(index);
   }
@@ -205,12 +215,5 @@ export class PopUpPraticienComponent {
 
 }
 
-export class Organisation {
-  id: number | undefined;
-  nom: string | undefined;
-  constructor(init: Partial<Organisation>) {
-    Object.assign(this, init);
-  }
-}
 
 
