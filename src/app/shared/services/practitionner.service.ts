@@ -148,8 +148,21 @@ export class FhirService {
         { system: 'https://esante.gouv.fr/produits-services/repertoire-rpps', value: rpps }
       ],
       practitioner: { reference: `Practitioner/${practId}` },
-      code: [{ coding: [roleDef.specialty] }],
-      organization: { reference: `Organization/${roleDef.organizationId}` },
+      code: [
+      {
+        coding: [
+          {
+            system:  roleDef.specialty.system,  
+            code:    roleDef.specialty.code,    
+            display: roleDef.specialty.display  
+          }
+        ]
+      }
+    ],
+      organization: { reference: `Organization/34` },
+      location: [
+        { reference: `Location/${roleDef.organizationId}` }
+      ], // suite à la modélisation du groupe 'Patrinoine' nous rattachons le soignant non plus à une organisation mais à une location (d'où l'incohérence dans les noms de variables)
       period: {
         start: roleDef.serviceStart,
         ...(roleDef.serviceEnd ? { end: roleDef.serviceEnd } : {})
@@ -189,8 +202,8 @@ createPractitionerWithRoles(input: PractitionerWithRoleInput): Observable<{ prac
   }
 
   /** GET Organisations*/
-  getOrganisations(): Observable<any> {
-    return this.http.get(`${this.base}/Organization`);
+  getOrganisations(): Observable<any> { //de même nous ne voulons plus mapper à une organisation mais à une location d'où l'incohérence dans le nom de la méthode et l'appel réalisé
+    return this.http.get(`${this.base}/Location`);
   }
 
   /** GET Practitioner?_count={count} */
