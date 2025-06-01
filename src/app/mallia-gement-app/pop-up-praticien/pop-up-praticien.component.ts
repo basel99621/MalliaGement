@@ -146,7 +146,7 @@ export class PopUpPraticienComponent {
     serviceStart: [''],
     serviceEnd: [''],
     specialty: this.fb.group({
-      system: ['http://snomed.info/sct'],  // valeur par défaut
+      system: 'http://snomed.info/sct',  // valeur par défaut
       code: [''],
       display: ['']
     }),

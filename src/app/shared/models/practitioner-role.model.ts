@@ -34,4 +34,10 @@ export interface PractitionerRole {
     start?: string;  // YYYY-MM-DD
     end?: string;    // YYYY-MM-DD
   };
+
+  /*Location rerference */
+  location?: Array<{
+    reference: string; // 'Location/{id}'
+  }>;
+
 }
