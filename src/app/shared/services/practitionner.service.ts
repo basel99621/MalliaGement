@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable, forkJoin } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { Observable, forkJoin, of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { Practitioner } from '../models/practitioner.model';
 import { PractitionerRole } from '../models/practitioner-role.model';
 
@@ -33,10 +33,10 @@ export class FhirService {
   private base = 'https://fhir.chl.connected-health.fr/fhir';
   private headers = new HttpHeaders({
     'Content-Type': 'application/fhir+json',
-    'Accept':       'application/fhir+json'
+    'Accept': 'application/fhir+json'
   });
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   /**
    * 1) Crée le Practitioner (POST)
@@ -80,7 +80,58 @@ export class FhirService {
     return this.http.post<Practitioner>(`${this.base}/Practitioner`, resource, { headers: this.headers });
   }
 
-   
+   updatePractitioner(id: string, input: PractitionerWithRoleInput): Observable<Practitioner> {
+  const resource: Practitioner = {
+    resourceType: 'Practitioner',
+    id: id, // important pour un PUT
+    identifier: [
+      {
+        use: 'official',
+        system: 'https://hl7.fr/ig/fhir/core/CodeSystem/fr-core-cs-v2-0203',
+        value: input.matricule,
+        type: {
+          text: 'Matricule',
+          coding: [{ code: 'INTRN', display: 'Identifiant interne' }]
+        }
+      },
+      {
+        use: 'official',
+        system: 'https://esante.gouv.fr/produits-services/repertoire-rpps',
+        value: input.rpps,
+        type: {
+          text: 'N° RPPS',
+          coding: [{ code: 'RPPS', display: 'N° RPPS' }]
+        }
+      }
+    ],
+    name: { family: input.family, given: [input.given] },
+    gender: input.gender,
+    birthDate: input.birthDate,
+    address: [{
+      line: input.addressLine,
+      city: input.city,
+      postalCode: input.postalCode,
+      country: input.country
+    }],
+    telecom: input.telecom.map(t => ({ system: t.system, use: t.use, value: t.value })),
+    ...(input.photoBase64 ? { photo: [{ contentType: 'image/jpeg', data: input.photoBase64 }] } : {})
+  };
+
+  return this.http.put<Practitioner>(`${this.base}/Practitioner/${id}`, resource, {
+    headers: this.headers
+  });
+}
+
+
+  supprimerPraticien(id: number): Observable<Practitioner> {
+    return this.http.delete<Practitioner>(`${this.base}/Practitioner/${id}`);
+  }
+
+   supprimerPraticienRole(id: number): Observable<PractitionerRole> {
+    return this.http.delete<PractitionerRole>(`${this.base}/PractitionerRole/${id}`);
+  }
+
+
 
 
   /**
@@ -108,19 +159,28 @@ export class FhirService {
     return this.http.post<PractitionerRole>(`${this.base}/PractitionerRole`, resource, { headers: this.headers });
   }
 
-  /**
-   * Public : crée le Practitioner, puis un PractitionerRole par entrée de input.roles
-   */
-  createPractitionerWithRoles(input: PractitionerWithRoleInput): Observable<PractitionerRole[]> {
-    return this.createPractitioner(input).pipe(
-      switchMap(pract => {
-        const calls = input.roles.map(roleDef =>
-          this.createPractitionerRole(pract.id!, roleDef, input.rpps)
+createPractitionerWithRoles(input: PractitionerWithRoleInput): Observable<{ practitioner: Practitioner, roles: PractitionerRole[] }> {
+  return this.createPractitioner(input).pipe(
+    switchMap(pract => {
+      const calls = input.roles?.length
+        ? input.roles.map(roleDef =>
+            this.createPractitionerRole(pract.id!, roleDef, input.rpps)
+          )
+        : [];
+
+      if (calls.length > 0) {
+        return forkJoin(calls).pipe(
+          map(roles => ({ practitioner: pract, roles }))
         );
-        return forkJoin(calls);
-      })
-    );
-  }
+      } else {
+        // Aucun rôle à créer → on retourne juste le praticien et un tableau vide
+        return of({ practitioner: pract, roles: [] });
+      }
+    })
+  );
+}
+
+
 
   /** GET Practitioner?_count={count} */
   getPractitioners(count = 5): Observable<any> {
@@ -133,9 +193,49 @@ export class FhirService {
     return this.http.get(`${this.base}/Organization`);
   }
 
-   /** GET Practitioner?_count={count} */
+  /** GET Practitioner?_count={count} */
   getSpecialites(): Observable<any> {
     return this.http.get(`${this.base}/ValueSet/130`);
+  }
+
+  /** GET Practitioner*/
+  getAllPraticiens(): Observable<any> {
+    return this.http.get(`${this.base}/Practitioner`);
+  }
+  
+  getAllPracticiensWithRoles(): Observable<PractitionerWithRoles[]> {
+  return this.getAllPraticiens().pipe(
+    switchMap((bundle: any) => {
+      const entries = bundle.entry || [];
+      const practitioners = entries
+        .filter((e: any) => e.resource?.resourceType === 'Practitioner')
+        .map((e: any) => e.resource);
+
+      const requests: Observable<PractitionerWithRoles>[] = practitioners.map((pract: any) =>
+        this.getRolesByPractitionerId(pract.id).pipe(
+          map(roles => ({
+            practitioner: pract,
+            roles: roles
+          }))
+        )
+      );
+
+      return forkJoin(requests); // ✅ maintenant bien typé
+    })
+  );
+}
+
+
+getRolesByPractitionerId(practitionerId: string): Observable<any[]> {
+  return this.http.get<any>(`${this.base}/PractitionerRole?practitioner=Practitioner/${practitionerId}`).pipe(
+    map(result => result.entry?.map((e: any) => e.resource) || [])
+  );
+}
+
+
+
+  getAllPraticiensRole(): Observable<any> {
+    return this.http.get(`${this.base}/PractitionerRole`);
   }
 
   /** GET Practitioner by RPPS */
@@ -166,6 +266,10 @@ export class FhirService {
   }
 }
 
+export interface PractitionerWithRoles {
+  practitioner: any; // ou de type `Practitioner` si typé
+  roles: any[];      // ou `PractitionerRole[]`
+}
 
 /*EXEMPLE D'UTILISATION
 

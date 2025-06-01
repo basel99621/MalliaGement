@@ -1,26 +1,30 @@
 <!-- <label style="margin-bottom: 10px;" for="selectedPraticien">Sélectionnez un praticien : </label>
 <br> -->
+<p-toast  />
+
+
 <div class="praticien-container">
     <div>
-        <!-- <p-select [options]="praticiens" [(ngModel)]="selectedPraticien" optionLabel="nom" [filter]="true"
-            filterBy="nom" [showClear]="true" placeholder="Select a Country" class="w-full md:w-56">
+         <p-select [options]="allPraticiens" [(ngModel)]="selectedPraticien" optionLabel="getNomPrenom" [filter]="true"
+            filterBy="nom" [showClear]="true" placeholder="Sélectionnez un praticien" class="w-full md:w-56">
             <ng-template #selectedItem let-selectedOption>
                 <div class="flex items-center gap-2">
-                    <div>{{ selectedOption.nom }}</div>
+                    <div>{{ selectedOption.getNomPrenom() }}</div>
                 </div>
             </ng-template>
             <ng-template let-praticien #item>
                 <div class="flex items-center gap-2">
-                    <div>{{ praticien.nom }}</div>
+                    <div>{{ praticien.getNomPrenom() }}</div>
                 </div>
             </ng-template>
-        </p-select> -->
+        </p-select>
     </div>
     <div class="action-boutons">
-        <p-button label="Ajouter" (onClick)="openPraticienPopUp()" [raised]="true" severity="success" />
+        <p-button label="Ajouter un praticien" (onClick)="openPraticienPopUp(true)" [raised]="true" severity="success" />
         <ng-container *ngIf="selectedPraticien">
-            <p-button icon="pi pi-pen-to-square" severity="secondary" />
-            <p-button icon="pi pi-trash" severity="danger" />
+            <p-button icon="pi pi-pen-to-square" severity="secondary" (onClick)="openPraticienPopUp(false)"  />
+            <p-confirmdialog />
+            <p-button icon="pi pi-trash" severity="danger" (click)="confirm1($event)"/>
             <p-button label="Afficher les rendez-vous" [raised]="true" severity="success" />
 
         </ng-container>
