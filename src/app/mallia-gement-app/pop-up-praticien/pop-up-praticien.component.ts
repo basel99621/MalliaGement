@@ -9,7 +9,7 @@ import { ButtonModule } from 'primeng/button';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FormBuilder, FormGroup, FormArray, FormControl, Validators } from '@angular/forms';
-import { FhirService } from '../../shared/services/practitionner.service';
+import { FhirService } from '../../shared/services/fhir.service';
 import { TableModule } from 'primeng/table';
 import { PractitionerRole } from '../../shared/models/practitioner-role.model';
 import { MessageService } from 'primeng/api';
@@ -86,8 +86,8 @@ export class PopUpPraticienComponent {
     return this.practitionerForm.get('roles') as FormArray;
   }
   ngOnInit() {
-     this.specialties = this.config.data.specialites;
-      this.allOrganistions = this.config.data.organisations;
+    this.specialties = this.config.data.specialites;
+    this.allOrganistions = this.config.data.organisations;
     if (this.config.data.selectedPraticien) {
       const res = this.config.data.selectedPraticien;
 
@@ -129,8 +129,8 @@ export class PopUpPraticienComponent {
         );
         this.practitionerForm.setControl('telecom', this.fb.array(telecomArray));
       }
-      
-// Rôles
+
+      // Rôles
       if (res.roles && Array.isArray(res.roles)) {
         const roleControls = res.roles.map((role: any) => {
           const coding = role.code?.[0]?.coding?.[0] || {};
@@ -141,7 +141,7 @@ export class PopUpPraticienComponent {
 
           return this.fb.group({
             serviceStart: [new Date(role.period?.start) || '', Validators.required],
-            serviceEnd: [role.period?.end || ''],
+            serviceEnd: [new Date(role.period?.end) || ''],
             specialty: this.fb.group({
               system: [speciality.system || 'http://snomed.info/sct'],
               code: [speciality.code || '', Validators.required],
@@ -171,7 +171,7 @@ export class PopUpPraticienComponent {
 
   submitForm() {
     if (this.config.data.selectedPraticien) {
-      
+
       this.fhirService.updatePractitioner(this.config.data.selectedPraticien.practitioner.id, this.practitionerForm.value).subscribe(
         (praticien) => {
           this.ref?.close(praticien)
@@ -208,11 +208,12 @@ export class PopUpPraticienComponent {
 
     this.roles.push(nouveauRole);
   }
+
   removeRole(index: number): void {
-    this.roles.removeAt(index);
+    if (this.roles.length > 1) {
+      this.roles.removeAt(index);
+    }
   }
-
-
 }
 
 

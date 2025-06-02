@@ -9,9 +9,9 @@ import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { PopUpPraticienComponent } from './pop-up-praticien/pop-up-praticien.component';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
-import { FhirService, PractitionerWithRoleInput } from '../shared/services/practitionner.service';
+import { FhirService, PractitionerWithRoleInput } from '../shared/services/fhir.service';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { PractitionerRole } from '../shared/models/practitioner-role.model';
+import { combineLatest } from 'rxjs';
 
 @Component({
   selector: 'app-mallia-gement-app',
@@ -24,7 +24,6 @@ import { PractitionerRole } from '../shared/models/practitioner-role.model';
 export class MalliaGementAppComponent {
 
 
-
   selectedPraticien: Praticien | undefined | null;
 
   selectedPraticienToUpdate: Practitioner | undefined;
@@ -32,6 +31,7 @@ export class MalliaGementAppComponent {
   allOrganistions: Organisation[] = [];
 
   ref: DynamicDialogRef | undefined;
+
   allPraticiens: Praticien[] = [];
 
   allPraticiensWithWithDetails: any[] = [];
@@ -48,64 +48,57 @@ export class MalliaGementAppComponent {
   ngOnInit() {
 
 
-    this.fhirService.getSpecialites().subscribe(specialites => {
-      this.specialites = specialites.expansion.contains;
-    });
+    combineLatest([
+      this.fhirService.getSpecialites(),
+      this.fhirService.getOrganisations(),
+      this.fhirService.getAllPracticiensWithDetails(),
+      this.fhirService.getAllPraticiensRole()
+    ]).subscribe({
+      next: ([specialites, organisations, praticiens, praticiensRole]) => {
+        // ---- Specialités ----
+        this.specialites = specialites?.expansion?.contains ?? [];
 
-    this.fhirService.getOrganisations().subscribe(organisations => {
-      if (Array.isArray(organisations.entry)) {
-        organisations.entry.forEach((org: any) => {
-          const organisation: Organisation = {
+        // ---- Organisations ----
+        if (Array.isArray(organisations.entry)) {
+          this.allOrganistions = organisations.entry.map((org: any) => ({
             id: org.resource.id,
             nom: org.resource.name
-          };
-          this.allOrganistions.push(organisation)
-        });
-      } else {
-        console.error('organisations n\'est pas un tableau :', organisations);
-      }
-    });
-    this.fhirService.getAllPracticiensWithDetails().subscribe(praticiens => {
+          }));
+        } else {
+          console.error('organisations n\'est pas un tableau :', organisations);
+        }
 
-
-
-      if (Array.isArray(praticiens)) {
-        this.allPraticiensWithWithDetails = praticiens;
-
-        praticiens.forEach((pr: any) => {
-          let praticien: Praticien = new Praticien({
+        // ---- Praticiens ----
+        if (Array.isArray(praticiens)) {
+          this.allPraticiensWithWithDetails = praticiens;
+          this.allPraticiens = praticiens.map((pr: any) => new Praticien({
             id: pr.practitioner.id,
             nom: pr.practitioner.name[0].family,
             prenom: pr.practitioner.name[0].given[0],
-          })
-          this.allPraticiens.push(praticien);
-        });
+          }));
+        } else {
+          console.error('praticiens n\'est pas un tableau :', praticiens);
+        }
 
-      } else {
-        console.error('organisations n\'est pas un tableau :', praticiens);
-      }
-    });
-
-    this.fhirService.getAllPraticiensRole().subscribe(praticiensRole => {
-      if (Array.isArray(praticiensRole.entry)) {
-
-        praticiensRole.entry.forEach((pR: any) => {
-          let praticienRole: PraticienRole = new PraticienRole({
+        // ---- Rôles praticiens ----
+        if (Array.isArray(praticiensRole.entry)) {
+          this.allPraticiensRole = praticiensRole.entry.map((pR: any) => new PraticienRole({
             id: pR.resource.id,
             praticientId: pR.resource.practitioner.reference.split('/')[1]
-          })
-          this.allPraticiensRole.push(praticienRole);
-
-
-        });
-      } else {
-        console.error('organisations n\'est pas un tableau :', praticiensRole);
+          }));
+        } else {
+          console.error('praticiensRole n\'est pas un tableau :', praticiensRole);
+        }
+      },
+      error: err => {
+        console.error('Erreur lors du chargement des données :', err);
       }
     });
   }
 
 
   openPraticienPopUp(add: boolean) {
+    //Si c'est un ajout d'un nouveau praticien
     if (add) {
       this.ref = this.dialogService.open(PopUpPraticienComponent, {
         header: 'Ajouter un praticien',
@@ -119,7 +112,6 @@ export class MalliaGementAppComponent {
       });
 
       this.ref.onClose.subscribe((praticien) => {
-
         if (praticien) {
           let newPraticien: Praticien = new Praticien({
             id: praticien.practitioner.id,
@@ -127,16 +119,16 @@ export class MalliaGementAppComponent {
             prenom: praticien.practitioner.name[0].given[0],
           });
 
-
           this.allPraticiens.push(newPraticien);
-
           this.messageService.add({ severity: 'success', summary: 'Success', detail: "Le praticien a été ajouté avec succèss !" });
         } else if (praticien == true) {
           this.messageService.add({ severity: 'errors', summary: 'Error', detail: "Une erreur est survenue !" });
         }
 
       });
-    } else {
+    }
+    // Sinon, c'est une mise à jour des informations du praticien
+    else {
       this.selectedPraticienToUpdate = this.allPraticiensWithWithDetails.find((en: any) => en.practitioner.id == this.selectedPraticien?.id)
       this.ref = this.dialogService.open(PopUpPraticienComponent, {
         header: 'Modifier un praticien',
@@ -162,7 +154,7 @@ export class MalliaGementAppComponent {
 
   }
 
-  confirm1(event: Event) {
+  confirmerSuppression(event: Event) {
     this.confirmationService.confirm({
       target: event.target as EventTarget,
       message: 'Souhaitez-vous supprimer le praticien <b>' + this.selectedPraticien?.getNomPrenom() + "</b> ?" + "</br>" + "<b>Attention </b>: Tous ses rendez-vous et rôles seront supprimés également.",
@@ -181,8 +173,8 @@ export class MalliaGementAppComponent {
       accept: () => {
         if (this.selectedPraticien?.id !== undefined) {
           const praticienId = this.selectedPraticien.id;
-          
-          this.fhirService.supprimerPraticienAvecRelations(praticienId.toString()).subscribe({
+
+          this.fhirService.supprimerPraticien(praticienId.toString()).subscribe({
             next: () => {
               this.messageService.add({
                 severity: 'success',

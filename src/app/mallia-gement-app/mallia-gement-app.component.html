@@ -1,8 +1,5 @@
-<!-- <label style="margin-bottom: 10px;" for="selectedPraticien">Sélectionnez un praticien : </label>
-<br> -->
-<p-toast  />
 
-
+<p-toast/>
 <div class="praticien-container">
     <div>
          <p-select [options]="allPraticiens" [(ngModel)]="selectedPraticien" optionLabel="getNomPrenom" [filter]="true"
@@ -24,9 +21,7 @@
         <ng-container *ngIf="selectedPraticien">
             <p-button icon="pi pi-pen-to-square" severity="secondary" (onClick)="openPraticienPopUp(false)"  />
             <p-confirmdialog />
-            <p-button icon="pi pi-trash" severity="danger" (click)="confirm1($event)"/>
-            <p-button label="Afficher les rendez-vous" [raised]="true" severity="success" />
-
+            <p-button icon="pi pi-trash" severity="danger" (click)="confirmerSuppression($event)"/>
         </ng-container>
     </div>
 </div>

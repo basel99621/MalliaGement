@@ -122,7 +122,7 @@
 
                 <!-- Action -->
                 <td>
-                    <button type="button" pButton icon="pi pi-trash" class="p-button-danger" (click)="removeRole(i)">
+                    <button type="button" pButton icon="pi pi-trash" class="p-button-danger" (click)="removeRole(i)" [disabled] ="roles.length ==1" >
                     </button>
                 </td>
             </tr>
