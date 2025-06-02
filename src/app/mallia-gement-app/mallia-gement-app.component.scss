@@ -1,10 +1,40 @@
+.titre-page {
+  color: #23366a; 
+  font-size: 2.5rem;
+  font-family: 'Segoe UI';
+  letter-spacing: 1px;
+}
+
+.style-page{
+    display: flex; 
+    flex-direction: column; 
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.width{
+    width: 800px;
+}
+
+.div1{
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+}
 .action-boutons {
     display: flex;
     gap: 0.5rem;
+    text-align: center;
 }
 
-.praticien-container {
-    margin-top: 10px;
-    display: flex;
-    gap: 0.5rem;
+.fixed-col-nom { width: 150px; }
+.fixed-col-prenom { width: 150px; }
+.fixed-col-rpps { width: 130px; }
+.fixed-col-actions {width: 150px; }
+
+.input-rpps {
+  border-radius: 0.5rem 0 0 0.5rem;
 }
+
+
+
