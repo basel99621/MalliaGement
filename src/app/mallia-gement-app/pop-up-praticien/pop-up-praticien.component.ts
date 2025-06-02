@@ -150,19 +150,12 @@ export class PopUpPraticienComponent {
             organizationId: [organizationId, Validators.required]
           });
         });
-
         this.practitionerForm.setControl('roles', this.fb.array(roleControls));
       }
 
     } else {
-
       this.ajouterRole();
-
     }
-
-
-
-
   }
 
   closePopUp() {
@@ -171,7 +164,6 @@ export class PopUpPraticienComponent {
 
   submitForm() {
     if (this.config.data.selectedPraticien) {
-
       this.fhirService.updatePractitioner(this.config.data.selectedPraticien.practitioner.id, this.practitionerForm.value).subscribe(
         (praticien) => {
           this.ref?.close(praticien)
@@ -180,7 +172,7 @@ export class PopUpPraticienComponent {
         (error) => {
           console.error(error);
           this.ref?.close(true)
-        })
+        });
 
     } else {
       this.fhirService.createPractitionerWithRoles(this.practitionerForm.value).subscribe(

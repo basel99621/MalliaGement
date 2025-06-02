@@ -102,7 +102,7 @@ export class MalliaGementAppComponent {
     if (add) {
       this.ref = this.dialogService.open(PopUpPraticienComponent, {
         header: 'Ajouter un praticien',
-        width: '90%',
+        width: '70%',
         contentStyle: { overflow: 'auto', height: 'auto' },
         baseZIndex: 10000,
         data: {
