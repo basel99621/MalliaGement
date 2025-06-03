@@ -152,7 +152,7 @@ export class PopUpPraticienComponent {
             serviceStart: [new Date(role.period?.start) || '', Validators.required],
             serviceEnd: [role.period?.end ? new Date(role.period?.end) : role.period?.end || ''],
             specialty: this.fb.group({
-              system: [speciality.system || 'https://mos.esante.gouv.fr/NOS/TRE_R32-StatutHospitalier/FHIR/TRE-R32-StatutHospitalier'],
+              system: [speciality.system || 'https://fhir.chl.connected-health.fr/fhir/ValueSet/130'],
               code: [speciality.code || '', Validators.required],
               display: [speciality.display || '']
             }),
@@ -206,7 +206,7 @@ export class PopUpPraticienComponent {
       serviceStart: ['', Validators.required],
       serviceEnd: [''],
       specialty: this.fb.group({
-        system: ['https://mos.esante.gouv.fr/NOS/TRE_R32-StatutHospitalier/FHIR/TRE-R32-StatutHospitalier'],  // valeur par défaut
+        system: ['https://fhir.chl.connected-health.fr/fhir/ValueSet/130'],  // valeur par défaut
         code: ['', Validators.required],
         display: ['']
       }),

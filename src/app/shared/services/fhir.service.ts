@@ -58,11 +58,12 @@ export class FhirService {
   }
 
  updatePractitionerWithRoles(id: string, input: PractitionerWithRoleInput): Observable<{ practitioner: Practitioner, roles: PractitionerRole[] }> {
+  console.log( input.rpps);
   const resource: Practitioner = {
     resourceType: 'Practitioner',
     id: id,
     identifier: [
-      {
+      /*{ // finalement nous ne voulons plus utiliser le matricule interne, le rpps étant obligatoire....
         use: 'official',
         system: 'https://hl7.fr/ig/fhir/core/CodeSystem/fr-core-cs-v2-0203',
         value: input.matricule,
@@ -70,7 +71,7 @@ export class FhirService {
           text: 'Matricule',
           coding: [{ code: 'INTRN', display: 'Identifiant interne' }]
         }
-      },
+      },*/
       {
         use: 'official',
         system: 'https://esante.gouv.fr/produits-services/repertoire-rpps',
