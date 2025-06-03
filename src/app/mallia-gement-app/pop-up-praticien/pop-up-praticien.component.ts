@@ -133,11 +133,14 @@ export class PopUpPraticienComponent {
       // Rôles
       if (res.roles && Array.isArray(res.roles)) {
         const roleControls = res.roles.map((role: any) => {
+          console.log(role.id);
+
           const coding = role.code?.[0]?.coding?.[0] || {};
           const organizationRef = role.location[0]?.reference || '';
           const organizationId = organizationRef.split('/')?.[1] || '';
           const speciality: any = this.specialties.find(s => s.code == coding.code);
           return this.fb.group({
+            id: role.id,
             serviceStart: [new Date(role.period?.start) || '', Validators.required],
             serviceEnd: [role.period?.end ? new Date(role.period?.end) : role.period?.end || ''],
             specialty: this.fb.group({
@@ -161,8 +164,12 @@ export class PopUpPraticienComponent {
 
   submitForm() {
     if (this.config.data.selectedPraticien) {
-      this.fhirService.updatePractitioner(this.config.data.selectedPraticien.practitioner.id, this.practitionerForm.value).subscribe(
+      console.log(this.practitionerForm.value);
+
+      this.fhirService.updatePractitionerWithRoles(this.config.data.selectedPraticien.practitioner.id, this.practitionerForm.value).subscribe(
         (praticien) => {
+          console.log(praticien);
+          
           this.ref?.close(praticien)
 
         },

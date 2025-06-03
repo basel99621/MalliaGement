@@ -22,34 +22,27 @@ import { PopUpAppointmentsComponent } from './pop-up-appointments/pop-up-appoint
 
 })
 export class MalliaGementAppComponent {
-
+  isLoading: boolean = false;
 
   selectedPraticien: Praticien | undefined | null;
-
   selectedPraticienToUpdate: Practitioner | undefined;
 
+  allPraticiens: Praticien[] = [];
   allOrganistions: Organisation[] = [];
+  allPraticiensWithWithDetails: any[] = [];
+  allPraticiensRole: PraticienRole[] = [];
+  specialites: any[] = [];
 
   ref: DynamicDialogRef | undefined;
 
-  allPraticiens: Praticien[] = [];
-
-  allPraticiensWithWithDetails: any[] = [];
-
-  allPraticiensRole: PraticienRole[] = [];
-
-  specialites: any[] = [];
-
-  isLoading: boolean = false;
-
-  constructor(public dialogService: DialogService,
+  constructor(
+    public dialogService: DialogService,
     public messageService: MessageService,
     private fhirService: FhirService,
     private confirmationService: ConfirmationService) { }
 
   ngOnInit() {
     this.isLoading = true;
-
 
     combineLatest([
       this.fhirService.getSpecialites(),
@@ -98,7 +91,6 @@ export class MalliaGementAppComponent {
       }
     });
   }
-
 
   openPraticienPopUp(add: boolean) {
     //Si c'est un ajout d'un nouveau praticien
@@ -149,18 +141,15 @@ export class MalliaGementAppComponent {
 
       this.ref.onClose.subscribe((praticien) => {
         if (praticien) {
-          this.messageService.add({ severity: 'success', summary: 'Success', detail: "Le praticien a été ajouté avec succèss !" });
+          this.messageService.add({ severity: 'success', summary: 'Success', detail: "Le praticien a été modifié avec succèss !" });
         } else if (praticien == true) {
           this.messageService.add({ severity: 'errors', summary: 'Error', detail: "Une erreur est survenue !" });
         }
       });
     }
-
-
   }
 
   openAppointmentsPopUp() {
-    
     this.ref = this.dialogService.open(PopUpAppointmentsComponent, {
       header: 'Les rendez vous du praticien' + " - " + this.selectedPraticien?.getNomPrenom(),
       width: '70%',
@@ -173,7 +162,6 @@ export class MalliaGementAppComponent {
         organisations: this.allOrganistions
       }
     });
-
   }
 
   confirmerSuppression(event: Event) {
@@ -195,7 +183,6 @@ export class MalliaGementAppComponent {
       accept: () => {
         if (this.selectedPraticien?.id !== undefined) {
           const praticienId = this.selectedPraticien.id;
-
           this.fhirService.supprimerPraticien(praticienId.toString()).subscribe({
             next: () => {
               this.messageService.add({
@@ -247,7 +234,6 @@ export class PraticienRole {
   constructor(init: Partial<PraticienRole>) {
     Object.assign(this, init);
   }
-
 }
 
 export class Organisation {
