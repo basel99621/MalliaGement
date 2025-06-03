@@ -25,7 +25,7 @@ export class FhirService {
         {
           use: 'official',
           system: 'https://hl7.fr/ig/fhir/core/CodeSystem/fr-core-cs-v2-0203',
-          value: input.matricule,
+          value: input.rpps, // dans notre cas le RPPS est aussi l'identifiant interne
           type: {
             text: 'Matricule',
             coding: [{ code: 'INTRN', display: 'Identifiant interne' }]
@@ -58,20 +58,19 @@ export class FhirService {
   }
 
  updatePractitionerWithRoles(id: string, input: PractitionerWithRoleInput): Observable<{ practitioner: Practitioner, roles: PractitionerRole[] }> {
-  console.log( input.rpps);
   const resource: Practitioner = {
     resourceType: 'Practitioner',
     id: id,
     identifier: [
-      /*{ // finalement nous ne voulons plus utiliser le matricule interne, le rpps étant obligatoire....
+      {
         use: 'official',
         system: 'https://hl7.fr/ig/fhir/core/CodeSystem/fr-core-cs-v2-0203',
-        value: input.matricule,
+        value: input.rpps,
         type: {
           text: 'Matricule',
           coding: [{ code: 'INTRN', display: 'Identifiant interne' }]
         }
-      },*/
+      },
       {
         use: 'official',
         system: 'https://esante.gouv.fr/produits-services/repertoire-rpps',
@@ -94,6 +93,8 @@ export class FhirService {
     telecom: input.telecom.map(t => ({ system: t.system, use: t.use, value: t.value })),
     ...(input.photoBase64 ? { photo: [{ contentType: 'image/jpeg', data: input.photoBase64 }] } : {})
   };
+  console.log(resource);
+  
 
   // Étape 1 : récupérer les anciens rôles
   return this.getRolesByPractitionerId(id).pipe(
