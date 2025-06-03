@@ -1,0 +1,137 @@
+<form [formGroup]="practitionerForm" >
+    <div class="grid">
+        <!-- Colonne gauche -->
+        <div class="col-6">
+            <div class=" field col-3">
+                <label for="rpps">RPPS <span class="required">*</span></label>
+                <input type="text" id="rpps" pInputText formControlName="rpps" />
+            </div>
+
+            <div class="field col-3">
+                <label for="family">Nom <span class="required">*</span></label>
+                <input type="text" id="family" pInputText formControlName="family" />
+            </div>
+
+            <div class="field col-6">
+                <label for="given">Prénom(s) <span class="required">*</span></label>
+                <input type="text" id="given" pInputText formControlName="given" />
+            </div>
+            <div class="grid col">
+                <div class=" field col-6">
+                    <label for="birthDate">Date de naissance </label>
+                    <p-datepicker id="birthDate" formControlName="birthDate" [showIcon]="true" appendTo="body" dateFormat="dd/mm/yy" />
+                </div>
+                <div class="field col-6">
+                    <label for="gender">Genre </label>
+                    <p-select id="gender" [options]="genres" formControlName="gender" optionLabel="name" optionValue="id" appendTo="body"
+                        placeholder="Sélectionnez un genre" class="w-full md:w-56" />
+                </div>
+            </div>
+            
+              <div class="field col-6" style="margin-top: -8px;">
+                <label for="city">Ville</label>
+                <input type="text" id="city" pInputText formControlName="city" />
+            </div>
+            
+
+
+
+        </div>
+
+        <!-- Colonne droite -->
+        <div class="col-6">
+            <!-- Telecom (FormArray) -->
+            <div formArrayName="telecom">
+                <div class="field col-6" [formGroupName]="0">
+                    <label>Email professionnel</label>
+                    <input type="email" pInputText formControlName="value" />
+                </div>
+                <div class="field col-12" [formGroupName]="1">
+                    <label>Téléphone professionnel</label>
+                    <input type="text" pInputText formControlName="value" />
+                </div>
+            </div>
+
+            <!-- Adresse postale -->
+            <div formArrayName="addressLine">
+                <div class=" field col-6" *ngFor="let ctrl of addressLine.controls; let i = index">
+                    <label>Adresse postale</label>
+                    <input [formControlName]="i" pInputText />
+                </div>
+            </div>
+
+
+           <div class=" field col-6" >
+                <label for="postalCode">Code postal</label>
+                <input type="text" id="postalCode" pInputText formControlName="postalCode" />
+            </div>
+            <div class=" field col-5">
+                <label for="country">Pays</label>
+                <input type="text" id="country" pInputText formControlName="country" />
+            </div>
+
+
+        </div>
+    </div>
+
+
+    <p-button label="Ajouter un rôle" (onClick)="ajouterRole()" [raised]="true" severity="success" />
+
+    <p-table [value]="roles.controls" [tableStyle]="{ 'min-width': '50rem' }" [scrollable]="true" *ngIf="roles.length > 0">
+        <ng-template pTemplate="header">
+            <tr>
+                <th>N</th>
+                <th>Spécialité <span class="required">*</span></th>
+                <th>Début de service <span class="required">*</span></th>
+                <th>Fin de service</th>
+                <th>Organisation <span class="required">*</span></th>
+                <th>Actions</th>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-roleGroup let-i="rowIndex">
+            <tr [formGroup]="roleGroup">
+                <td>{{ i + 1 }}</td>
+
+                <!-- Spécialité -->
+                <td [formGroupName]="'specialty'">
+                    <p-select [options]="specialties" optionLabel="display" optionValue="code"
+                        placeholder="Sélectionnez" formControlName="code" class="w-full" appendTo="body">
+                    </p-select>
+                </td>
+
+                <!-- Début -->
+                <td>
+                    <p-datePicker formControlName="serviceStart" dateFormat="yy-mm-dd" [showIcon]="true" dateFormat="dd/mm/yy" 
+                        appendTo="body">
+                    </p-datePicker>
+                </td>
+
+                <!-- Fin -->
+                <td>
+                    <p-datePicker formControlName="serviceEnd" dateFormat="yy-mm-dd" [showIcon]="true" appendTo="body" dateFormat="dd/mm/yy" >
+                    </p-datePicker>
+                </td>
+
+                <!-- Organisation -->
+                <td>
+                    <p-select [options]="allOrganistions" optionLabel="nom" optionValue="id" placeholder="Organisation"
+                        formControlName="organizationId" class="w-full" appendTo="body">
+                    </p-select>
+                </td>
+
+                <!-- Action -->
+                <td>
+                    <button type="button" pButton icon="pi pi-trash" class="p-button-danger" (click)="removeRole(i)" [disabled] ="roles.length ==1" >
+                    </button>
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+
+    <div class="boutons">
+        <p-button class="cancel-button" label="Annuler" severity="contrast" (click)="closePopUp()" />
+        <p-button label="Valider" severity="success" type="submit" (click)="submitForm()"
+            [disabled]="practitionerForm.invalid" />
+    </div>
+</form>

@@ -1,7 +1,7 @@
 // Profil ISISPractitioner (hérite de fr-core-practitioner)
 export interface Practitioner {
   resourceType: 'Practitioner';
-  id: string;
+  id?: string;
 
   /** Identifiant RPPS (obligatoire, selon votre profil) */
   identifier: Array<{
@@ -25,7 +25,8 @@ export interface Practitioner {
   };
 
   /** Genre, date de naissance, adresse… hérités de FR-Core (optionnels) */
-  gender?: 'male' | 'female' | 'other' | 'unknown';
+// practitioner.model.ts
+  gender?: "male" | "female" | "unknown" | "other" | undefined;
   birthDate?: string; // YYYY-MM-DD
 
   /** Télécom slicé en email, téléphone pro (work) et autres */

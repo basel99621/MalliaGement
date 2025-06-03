@@ -2,7 +2,7 @@
 // Profil ISISPractitionerRole (hérite de fr-core-practitioner-role)
 export interface PractitionerRole {
   resourceType: 'PractitionerRole';
-  id: string;
+  id?: string;
 
   /** Identifiant RPPS (obligatoire) */
   identifier: Array<{
@@ -34,4 +34,10 @@ export interface PractitionerRole {
     start?: string;  // YYYY-MM-DD
     end?: string;    // YYYY-MM-DD
   };
+
+  /*Location rerference */
+  location?: Array<{
+    reference: string; // 'Location/{id}'
+  }>;
+
 }

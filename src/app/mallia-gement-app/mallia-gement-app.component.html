@@ -17,7 +17,7 @@
         
 
         <div>
-            <p-button [outlined]="true" severity="success">
+            <p-button [outlined]="true" severity="success" (onClick)="openPraticienPopUp(true)">
                 <i class="fa-solid fa-plus"></i> Ajouter un pratitien
             </p-button> 
         </div>     
@@ -40,13 +40,13 @@
                         <td>{{ practicien.name.given[0] }}</td>
                         <td>{{ getRPPS(practicien) }}</td>
                         <td class="action-boutons">
-                            <p-button [rounded]="true" [text]="true">
+                            <p-button [rounded]="true" [text]="true" (click)="openPraticienPopUp(false, practicien)">
                                 <i class="fa-solid fa-pen"></i>
                             </p-button>
-                            <p-button [rounded]="true" [text]="true">
+                            <p-button [rounded]="true" [text]="true" (click)="confirmerSuppression($event, practicien)">
                                 <i class="fa-solid fa-trash"></i>
                             </p-button>
-                            <p-button [rounded]="true" [text]="true">
+                            <p-button [rounded]="true" [text]="true" (click)="openAppointmentsPopUp()">
                                 <i class="fa-solid fa-list"></i>
                             </p-button>
                         </td>
