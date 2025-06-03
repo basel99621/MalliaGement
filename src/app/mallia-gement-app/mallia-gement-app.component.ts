@@ -111,6 +111,7 @@ export class MalliaGementAppComponent {
       this.totalRecords = response.total;
       this.allPratitiens[pageIndex] = response.entry;
       this.pratitiens = response.entry;
+      
 
       const nextUrl = response.links.find((l: any) => l.relation === 'next')?.url;
       const prevUrl = response.links.find((l: any) => l.relation === 'prev')?.url;
@@ -137,6 +138,7 @@ export class MalliaGementAppComponent {
     } else {
       // si le champ est vide, on recharge la liste initiale
       this.loadMedecins({ first: 0, rows: 5 });
+      
     }
   }
 
@@ -182,8 +184,8 @@ export class MalliaGementAppComponent {
             prenom: praticien.practitioner.name[0].given[0],
           });
 
-          //this.allPratitiens.push(newPraticien);
           this.allPratitiens[0].push(this.praticienToPractitioner(newPraticien));
+          this.pratitiens.push(praticien);
           this.messageService.add({ severity: 'success', summary: 'Success', detail: "Le praticien a été ajouté avec succèss !" });
         } else if (praticien == true) {
           this.messageService.add({ severity: 'errors', summary: 'Error', detail: "Une erreur est survenue !" });
@@ -265,7 +267,6 @@ export class MalliaGementAppComponent {
       },
     });
   }
-
 
   openAppointmentsPopUp(praticien: Practitioner) {
     this.ref = this.dialogService.open(PopUpAppointmentsComponent, {

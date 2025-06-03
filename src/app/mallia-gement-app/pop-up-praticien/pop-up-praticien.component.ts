@@ -173,12 +173,9 @@ export class PopUpPraticienComponent {
 
   submitForm() {
     if (this.config.data.selectedPraticien) {
-
-      this.fhirService.updatePractitionerWithRoles(this.config.data.selectedPraticien.id, this.practitionerForm.value).subscribe(
+      this.fhirService.updatePractitioner(this.config.data.selectedPraticien.id, this.practitionerForm.value).subscribe(
         (praticien) => {
-
-          this.ref?.close(praticien)
-
+          this.ref?.close(praticien);
         },
         (error) => {
           console.error(error);

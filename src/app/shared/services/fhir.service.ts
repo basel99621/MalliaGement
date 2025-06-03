@@ -57,6 +57,67 @@ export class FhirService {
     return this.http.post<Practitioner>(`${this.base}/Practitioner`, resource, { headers: this.headers });
   }
 
+updatePractitioner(id: string, input: PractitionerWithRoleInput): Observable<Practitioner> {
+  const formattedBirthDate =
+    input.birthDate 
+      ? input.birthDate
+      : input.birthDate;
+
+  const resource: Practitioner = {
+    resourceType: 'Practitioner',
+    id: id,
+    identifier: [
+      {
+        use: 'official',
+        system: 'https://hl7.fr/ig/fhir/core/CodeSystem/fr-core-cs-v2-0203',
+        value: input.matricule,
+        type: {
+          text: 'Matricule',
+          coding: [{ code: 'INTRN', display: 'Identifiant interne' }]
+        }
+      },
+      {
+        use: 'official',
+        system: 'https://esante.gouv.fr/produits-services/repertoire-rpps',
+        value: input.rpps,
+        type: {
+          text: 'N° RPPS',
+          coding: [{ code: 'RPPS', display: 'N° RPPS' }]
+        }
+      }
+    ],
+    name: {
+      family: input.family,
+      given: [input.given]
+    },
+    gender: input.gender,
+    birthDate: formattedBirthDate,
+    address: [{
+      line: input.addressLine, // ← string[] requis
+      city: input.city,
+      postalCode: input.postalCode,
+      country: input.country
+    }],
+    telecom: input.telecom.map(t => ({
+      system: t.system,
+      use: t.use,
+      value: t.value
+    })),
+    ...(input.photoBase64 ? {
+      photo: [{
+        contentType: 'image/jpeg',
+        data: input.photoBase64
+      }]
+    } : {})
+  };
+
+  return this.http.put<Practitioner>(`${this.base}/Practitioner/${id}`, resource, {
+    headers: this.headers
+  });
+}
+
+
+
  updatePractitionerWithRoles(id: string, input: PractitionerWithRoleInput): Observable<{ practitioner: Practitioner, roles: PractitionerRole[] }> {
   const resource: Practitioner = {
     resourceType: 'Practitioner',
