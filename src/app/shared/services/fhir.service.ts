@@ -94,8 +94,6 @@ export class FhirService {
     telecom: input.telecom.map(t => ({ system: t.system, use: t.use, value: t.value })),
     ...(input.photoBase64 ? { photo: [{ contentType: 'image/jpeg', data: input.photoBase64 }] } : {})
   };
-  console.log(resource);
-  
 
   // Étape 1 : récupérer les anciens rôles
   return this.getRolesByPractitionerId(id).pipe(

@@ -2,6 +2,7 @@
 
 <i class="pi pi-spin pi-spinner loader"  *ngIf="isLoading"></i>
 <p-toast/>
+<p-confirmdialog />
 <div *ngIf="!isLoading" class="style-page">
     <h1 class="titre-page">Gestion des praticiens</h1>
     <div class="width div1">
@@ -45,7 +46,7 @@
                             <p-button [rounded]="true" [text]="true" (click)="openPraticienPopUp(false, praticien)">
                                 <i class="fa-solid fa-pen"></i>
                             </p-button>
-                            <p-confirmdialog />
+                            
                             <p-button [rounded]="true" [text]="true" (click)="confirmerSuppression($event, praticien)">
                                 <i class="fa-solid fa-trash"></i>
                             </p-button>
