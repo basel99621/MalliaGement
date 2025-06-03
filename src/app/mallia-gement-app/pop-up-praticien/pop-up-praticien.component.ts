@@ -49,7 +49,9 @@ export class PopUpPraticienComponent {
       family: ['', Validators.required],
       given: ['', Validators.required],
       gender: ['male'],  // ou utiliser un select dans le template pour forcer les valeurs attendues
-      rpps: ['', Validators.required],
+      rpps: ['',
+        Validators.required
+      ],
       matricule: [''],
       birthDate: [''],
       addressLine: this.fb.array([this.fb.control('')]),
@@ -86,6 +88,8 @@ export class PopUpPraticienComponent {
     return this.practitionerForm.get('roles') as FormArray;
   }
   ngOnInit() {
+    console.log(this.config.data.selectedPraticien);
+
     this.specialties = this.config.data.specialites;
     this.allOrganistions = this.config.data.organisations;
     if (this.config.data.selectedPraticien) {
@@ -93,8 +97,8 @@ export class PopUpPraticienComponent {
 
 
       // Extraction des données du Practitioner FHIR
-      const name = res.practitioner.name?.[0] || {};
-      const identifier = res.practitioner.identifier || [];
+      const name = res.name || {};
+      const identifier = res.identifier || [];
 
       const rpps = identifier.find((id: any) => id.system?.includes('rpps'))?.value || '';
       const matricule = identifier.find((id: any) => id.system?.includes('matricule'))?.value || '';
@@ -131,19 +135,24 @@ export class PopUpPraticienComponent {
       }
 
       // Rôles
-      if (res.roles && Array.isArray(res.roles)) {
-        const roleControls = res.roles.map((role: any) => {
+      this.fhirService.getRolesByPractitionerId(res.id).subscribe((roles) => {
+        this.praticiensRoles = roles;
+        console.log(roles);
+
+        if (this.praticiensRoles && Array.isArray(this.praticiensRoles)) {
+        const roleControls = this.praticiensRoles.map((role: any) => {
+          console.log(role.id);
+
           const coding = role.code?.[0]?.coding?.[0] || {};
           const organizationRef = role.location[0]?.reference || '';
           const organizationId = organizationRef.split('/')?.[1] || '';
           const speciality: any = this.specialties.find(s => s.code == coding.code);
-
-
           return this.fb.group({
+            id: role.id,
             serviceStart: [new Date(role.period?.start) || '', Validators.required],
-            serviceEnd: [new Date(role.period?.end) || ''],
+            serviceEnd: [role.period?.end ? new Date(role.period?.end) : role.period?.end || ''],
             specialty: this.fb.group({
-              system: [speciality.system || 'http://snomed.info/sct'],
+              system: [speciality.system || 'https://mos.esante.gouv.fr/NOS/TRE_R32-StatutHospitalier/FHIR/TRE-R32-StatutHospitalier'],
               code: [speciality.code || '', Validators.required],
               display: [speciality.display || '']
             }),
@@ -153,6 +162,8 @@ export class PopUpPraticienComponent {
         this.practitionerForm.setControl('roles', this.fb.array(roleControls));
       }
 
+      });
+      
     } else {
       this.ajouterRole();
     }
@@ -164,8 +175,12 @@ export class PopUpPraticienComponent {
 
   submitForm() {
     if (this.config.data.selectedPraticien) {
-      this.fhirService.updatePractitioner(this.config.data.selectedPraticien.practitioner.id, this.practitionerForm.value).subscribe(
+      console.log(this.practitionerForm.value);
+
+      this.fhirService.updatePractitionerWithRoles(this.config.data.selectedPraticien.id, this.practitionerForm.value).subscribe(
         (praticien) => {
+          console.log(praticien);
+          
           this.ref?.close(praticien)
 
         },
@@ -191,7 +206,7 @@ export class PopUpPraticienComponent {
       serviceStart: ['', Validators.required],
       serviceEnd: [''],
       specialty: this.fb.group({
-        system: ['http://snomed.info/sct'],  // valeur par défaut
+        system: ['https://mos.esante.gouv.fr/NOS/TRE_R32-StatutHospitalier/FHIR/TRE-R32-StatutHospitalier'],  // valeur par défaut
         code: ['', Validators.required],
         display: ['']
       }),

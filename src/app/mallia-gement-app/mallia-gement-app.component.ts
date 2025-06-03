@@ -13,9 +13,10 @@ import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { PopUpPraticienComponent } from './pop-up-praticien/pop-up-praticien.component';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
-import { FhirService, PractitionerWithRoleInput } from '../shared/services/fhir.service';
+import { FhirService } from '../shared/services/fhir.service';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { combineLatest } from 'rxjs';
+import { PopUpAppointmentsComponent } from './pop-up-appointments/pop-up-appointments.component';
 
 @Component({
   selector: 'app-mallia-gement-app',
@@ -42,11 +43,13 @@ export class MalliaGementAppComponent {
   currentPageUrl: string = this.practitionnerService.base + '/Practitioner?_count=5';
   pageUrls: string[] = []; // Pour mémoriser les URLs de chaque page déjà vue
 
+  allPraticiens: Praticien[] = [];
   allOrganistions: Organisation[] = [];
   specialites: any[] = [];
   ref: DynamicDialogRef | undefined;
 
-  constructor(public dialogService: DialogService,
+  constructor(
+    public dialogService: DialogService,
     public messageService: MessageService,
     private fhirService: FhirService,
     private confirmationService: ConfirmationService) 
@@ -64,7 +67,6 @@ export class MalliaGementAppComponent {
       next: ([specialites, organisations]) => {
         // ---- Specialités ----
         this.specialites = specialites?.expansion?.contains ?? [];
-
         // ---- Organisations ----
         if (Array.isArray(organisations.entry)) {
           this.allOrganistions = organisations.entry.map((org: any) => ({
@@ -146,20 +148,6 @@ export class MalliaGementAppComponent {
     }
   }
 
-  //selectedPraticien: Praticien | undefined | null;
-
-  //selectedPraticienToUpdate: Practitioner | undefined;
-
-  
-
-  
-
-  //allPraticiens: Praticien[] = [];
-
-  //allPraticiensWithWithDetails: any[] = [];
-
-  //allPraticiensRole: PraticienRole[] = [];
-
   praticienToPractitioner(prat: Praticien): Practitioner {
   return {
     resourceType: 'Practitioner',
@@ -173,7 +161,7 @@ export class MalliaGementAppComponent {
   };
 }
 
-  openPraticienPopUp(add: boolean, selectedPraticien? : Praticien) {
+  openPraticienPopUp(add: boolean, selectedPraticien? : Practitioner) {
     //Si c'est un ajout d'un nouveau praticien
     if (add) {
       this.ref = this.dialogService.open(PopUpPraticienComponent, {
@@ -181,6 +169,7 @@ export class MalliaGementAppComponent {
         width: '70%',
         contentStyle: { overflow: 'auto', height: 'auto' },
         baseZIndex: 10000,
+        closable: true,
         data: {
           specialites: this.specialites,
           organisations: this.allOrganistions
@@ -212,6 +201,7 @@ export class MalliaGementAppComponent {
         width: '70%',
         contentStyle: { overflow: 'auto', height: 'auto' },
         baseZIndex: 10000,
+        closable: true,
         data: {
           selectedPraticien: selectedPraticien,
           specialites: this.specialites,
@@ -221,7 +211,7 @@ export class MalliaGementAppComponent {
 
       this.ref.onClose.subscribe((praticien) => {
         if (praticien) {
-          this.messageService.add({ severity: 'success', summary: 'Success', detail: "Le praticien a été ajouté avec succèss !" });
+          this.messageService.add({ severity: 'success', summary: 'Success', detail: "Le praticien a été modifié avec succèss !" });
         } else if (praticien == true) {
           this.messageService.add({ severity: 'errors', summary: 'Error', detail: "Une erreur est survenue !" });
         }
@@ -231,10 +221,11 @@ export class MalliaGementAppComponent {
 
   }
 
-  confirmerSuppression(event: Event, selectedPraticien : Praticien) {
+  confirmerSuppression(event: Event, praticien : Praticien) {
+    console.log(praticien);
     this.confirmationService.confirm({
       target: event.target as EventTarget,
-      message: 'Souhaitez-vous supprimer le praticien <b>' +selectedPraticien.getNomPrenom() + "</b> ?" + "</br>" + "<b>Attention </b>: Tous ses rendez-vous et rôles seront supprimés également.",
+      message: 'Souhaitez-vous supprimer le praticien <b> Attention </b>: Tous ses rendez-vous et rôles seront supprimés également.',
       header: 'Confirmation',
       closable: true,
       closeOnEscape: true,
@@ -248,8 +239,8 @@ export class MalliaGementAppComponent {
         label: 'Valider',
       },
       accept: () => {
-        if (selectedPraticien.id !== undefined) {
-          const praticienId = selectedPraticien.id;
+        if (praticien.id !== undefined) {
+          const praticienId = praticien.id;
 
           this.fhirService.supprimerPraticien(praticienId.toString()).subscribe({
             next: () => {
@@ -283,6 +274,22 @@ export class MalliaGementAppComponent {
       },
     });
   }
+
+
+openAppointmentsPopUp(praticien: Practitioner) {
+    this.ref = this.dialogService.open(PopUpAppointmentsComponent, {
+      header: 'Les rendez vous du praticien' ,
+      width: '70%',
+      contentStyle: { overflow: 'auto', height: 'auto' },
+      baseZIndex: 10000,
+      closable: true,
+      data: {
+        selectedPraticien: praticien,
+        specialites: this.specialites,
+        organisations: this.allOrganistions
+      }
+    });
+  }
 }
 
 export class Praticien {
@@ -306,7 +313,6 @@ export class PraticienRole {
   constructor(init: Partial<PraticienRole>) {
     Object.assign(this, init);
   }
-
 }
 
 export class Organisation {

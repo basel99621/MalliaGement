@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, forkJoin, of, throwError } from 'rxjs';
-import {  map, switchMap } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 import { Practitioner } from '../models/practitioner.model';
 import { PractitionerRole } from '../models/practitioner-role.model';
 
@@ -18,7 +18,7 @@ export class FhirService {
   /**
    * 1) Crée le Practitioner (POST)
    */
-  private createPractitioner(input: PractitionerWithRoleInput): Observable<Practitioner> {
+  createPractitioner(input: PractitionerWithRoleInput): Observable<Practitioner> {
     const resource: Practitioner = {
       resourceType: 'Practitioner',
       identifier: [
@@ -57,47 +57,79 @@ export class FhirService {
     return this.http.post<Practitioner>(`${this.base}/Practitioner`, resource, { headers: this.headers });
   }
 
-  updatePractitioner(id: string, input: PractitionerWithRoleInput): Observable<Practitioner> {
-    const resource: Practitioner = {
-      resourceType: 'Practitioner',
-      id: id, // important pour un PUT
-      identifier: [
-        {
-          use: 'official',
-          system: 'https://hl7.fr/ig/fhir/core/CodeSystem/fr-core-cs-v2-0203',
-          value: input.matricule,
-          type: {
-            text: 'Matricule',
-            coding: [{ code: 'INTRN', display: 'Identifiant interne' }]
-          }
-        },
-        {
-          use: 'official',
-          system: 'https://esante.gouv.fr/produits-services/repertoire-rpps',
-          value: input.rpps,
-          type: {
-            text: 'N° RPPS',
-            coding: [{ code: 'RPPS', display: 'N° RPPS' }]
-          }
+ updatePractitionerWithRoles(id: string, input: PractitionerWithRoleInput): Observable<{ practitioner: Practitioner, roles: PractitionerRole[] }> {
+  const resource: Practitioner = {
+    resourceType: 'Practitioner',
+    id: id,
+    identifier: [
+      {
+        use: 'official',
+        system: 'https://hl7.fr/ig/fhir/core/CodeSystem/fr-core-cs-v2-0203',
+        value: input.matricule,
+        type: {
+          text: 'Matricule',
+          coding: [{ code: 'INTRN', display: 'Identifiant interne' }]
         }
-      ],
-      name: { family: input.family, given: [input.given] },
-      gender: input.gender,
-      birthDate: input.birthDate,
-      address: [{
-        line: input.addressLine,
-        city: input.city,
-        postalCode: input.postalCode,
-        country: input.country
-      }],
-      telecom: input.telecom.map(t => ({ system: t.system, use: t.use, value: t.value })),
-      ...(input.photoBase64 ? { photo: [{ contentType: 'image/jpeg', data: input.photoBase64 }] } : {})
-    };
+      },
+      {
+        use: 'official',
+        system: 'https://esante.gouv.fr/produits-services/repertoire-rpps',
+        value: input.rpps,
+        type: {
+          text: 'N° RPPS',
+          coding: [{ code: 'RPPS', display: 'N° RPPS' }]
+        }
+      }
+    ],
+    name: { family: input.family, given: [input.given] },
+    gender: input.gender,
+    birthDate: input.birthDate,
+    address: [{
+      line: input.addressLine,
+      city: input.city,
+      postalCode: input.postalCode,
+      country: input.country
+    }],
+    telecom: input.telecom.map(t => ({ system: t.system, use: t.use, value: t.value })),
+    ...(input.photoBase64 ? { photo: [{ contentType: 'image/jpeg', data: input.photoBase64 }] } : {})
+  };
+  console.log(resource);
+  
 
-    return this.http.put<Practitioner>(`${this.base}/Practitioner/${id}`, resource, {
-      headers: this.headers
-    });
-  }
+  // Étape 1 : récupérer les anciens rôles
+  return this.getRolesByPractitionerId(id).pipe(
+    switchMap(oldRoles => {
+      const deleteCalls = oldRoles.map(role =>
+        this.supprimerPraticienRole(role.id)
+      );
+      // Étape 2 : supprimer les anciens rôles
+      return (deleteCalls.length > 0 ? forkJoin(deleteCalls) : of([]));
+    }),
+    // Étape 3 : mise à jour du praticien
+    switchMap(() =>
+      this.http.put<Practitioner>(`${this.base}/Practitioner/${id}`, resource, {
+        headers: this.headers
+      })
+    ),
+    // Étape 4 : recréer les nouveaux rôles
+    switchMap(pract => {
+      const createCalls = input.roles?.length
+        ? input.roles.map(roleDef =>
+            this.createPractitionerRole(pract.id!, roleDef, input.rpps)
+          )
+        : [];
+
+      return (createCalls.length > 0 ? forkJoin(createCalls) : of([])).pipe(
+        map(roles => ({
+          practitioner: pract,
+          roles
+        }))
+      );
+    })
+  );
+}
+
+
 
   supprimerPraticien(id: string): Observable<any> {
     return this.getRolesByPractitionerId(id).pipe(
@@ -196,28 +228,6 @@ export class FhirService {
     return this.http.get(`${this.base}/Practitioner`);
   }
 
-  getAllPracticiensWithRoles(): Observable<PractitionerWithRoles[]> {
-    return this.getAllPraticiens().pipe(
-      switchMap((bundle: any) => {
-        const entries = bundle.entry || [];
-        const practitioners = entries
-          .filter((e: any) => e.resource?.resourceType === 'Practitioner')
-          .map((e: any) => e.resource);
-
-        const requests: Observable<PractitionerWithRoles>[] = practitioners.map((pract: any) =>
-          this.getRolesByPractitionerId(pract.id).pipe(
-            map(roles => ({
-              practitioner: pract,
-              roles: roles
-            }))
-          )
-        );
-
-        return forkJoin(requests); // ✅ maintenant bien typé
-      })
-    );
-  }
-
   getAllPracticiensWithDetails(): Observable<PractitionerWithDetails[]> {
     return this.getAllPraticiens().pipe(
       switchMap((bundle: any) => {
@@ -269,10 +279,52 @@ export class FhirService {
     const params = new HttpParams().set('actor', `Practitioner/${id}`);
     return this.http.get(`${this.base}/Appointment`, { headers: this.headers, params });
   }
+
   /** GET Appointment?actor=Practitioner/{id} */
   getSchedulesByPractitionerId(id: string): Observable<any> {
     const params = new HttpParams().set('actor', `Practitioner/${id}`);
     return this.http.get(`${this.base}/Schedule`, { headers: this.headers, params });
+  }
+
+  getAppointmentsWithPatientsByPractitionerId(practitionerId: string | undefined): Observable<any[]> {
+    const url = `${this.base}/Appointment?actor=Practitioner/${practitionerId}`;
+
+    return this.http.get<any>(url, { headers: this.headers }).pipe(
+      switchMap(bundle => {
+        const appointments = bundle.entry?.map((entry: any) => entry.resource) || [];
+
+        // Extraire les IDs des patients uniques à partir des participants
+        const patientIds = Array.from(new Set(
+          appointments
+            .flatMap((appt: any) =>
+              appt.participant
+                ?.filter((p: any) => p.actor.reference.startsWith('Patient/'))
+                .map((p: any) => p.actor.reference.split('/')[1])
+            )
+        ));
+
+        // Requêtes pour récupérer les ressources Patient
+        const patientRequests = patientIds.map(id =>
+          this.http.get(`${this.base}/Patient/${id}`, { headers: this.headers })
+        );
+
+        return forkJoin(patientRequests).pipe(
+          map(patients => {
+            // Associer les patients aux rendez-vous
+            return appointments.map((appt: any) => {
+              const patientRef = appt.participant?.find(
+                (p: any) => p.actor.reference.startsWith('Patient/')
+              )?.actor.reference;
+
+              const patientId = patientRef?.split('/')[1];
+              const patient = patients.find((p: any) => p.id === patientId);
+
+              return { appointment: appt, patient };
+            });
+          })
+        );
+      })
+    );
   }
 
   /** GET Appointment by RPPS (enchaîné) */
@@ -286,6 +338,10 @@ export class FhirService {
         return this.getAppointmentsByPractitionerId(id);
       })
     );
+  }
+
+  supprimerPraticienRole(id: string): Observable<any> {
+    return this.http.delete(`${this.base}/PractitionerRole/${id}`)
   }
 }
 

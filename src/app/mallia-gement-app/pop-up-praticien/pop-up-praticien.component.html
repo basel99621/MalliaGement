@@ -4,7 +4,7 @@
         <div class="col-6">
             <div class=" field col-3">
                 <label for="rpps">RPPS <span class="required">*</span></label>
-                <input type="text" id="rpps" pInputText formControlName="rpps" />
+                <input type="text" id="rpps" pInputText formControlName="rpps" maxlength="11" />
             </div>
 
             <div class="field col-3">
@@ -21,7 +21,7 @@
                     <label for="birthDate">Date de naissance </label>
                     <p-datepicker id="birthDate" formControlName="birthDate" [showIcon]="true" appendTo="body" dateFormat="dd/mm/yy" />
                 </div>
-                <div class="field col-6">
+                <div class="field col-4">
                     <label for="gender">Genre </label>
                     <p-select id="gender" [options]="genres" formControlName="gender" optionLabel="name" optionValue="id" appendTo="body"
                         placeholder="Sélectionnez un genre" class="w-full md:w-56" />

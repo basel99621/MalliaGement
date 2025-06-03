@@ -1,0 +1,26 @@
+<i class="pi pi-spin pi-spinner loader"  *ngIf="isLoading"></i>
+<div *ngIf="!isLoading">
+<p *ngIf="appointments.length == 0" > Ce praticien n'a aucun rendez-vous</p>
+<p-table [value]="appointments" [tableStyle]="{ 'min-width': '50rem' }" [scrollable]="true" *ngIf="appointments.length > 0">
+  <ng-template pTemplate="header">
+    <tr>
+      <th>N°</th>
+      <th>Patient</th>
+      <th>Date de naissance</th>
+      <th>Date du rendez-vous</th>
+      <th>Motif</th>
+    </tr>
+  </ng-template>
+
+  <ng-template pTemplate="body" let-appointment let-i="rowIndex">
+    <tr>
+      <td>{{ i + 1 }}</td>
+      <td>{{ appointment.nomPatient }} {{ appointment.prenomPatient }}  </td>
+      <td>{{ appointment.dateNaissance | date: 'dd/MM/yyyy'  }}</td>
+      <td>{{ appointment.date | date: 'dd/MM/yyyy HH:mm'  }}</td>
+      <td>{{ appointment.motif }}</td>
+    </tr>
+  </ng-template>
+</p-table>
+
+</div>

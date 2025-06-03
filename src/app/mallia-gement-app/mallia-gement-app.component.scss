@@ -36,5 +36,10 @@
   border-radius: 0.5rem 0 0 0.5rem;
 }
 
-
-
+.loader {
+    font-size: 8rem;
+    color: #0056b3;
+    display: flex;
+    justify-content: center;
+    margin-top: 160px;
+}
