@@ -41,7 +41,7 @@ export class PopUpPraticienComponent {
   selectedGenre: string | undefined;
 
   practitionerForm: FormGroup;
-
+  isLoading: boolean = false;
 
 
   constructor(private fb: FormBuilder, private fhirService: FhirService, private ref: DynamicDialogRef, private messageService: MessageService, private config: DynamicDialogConfig) {
@@ -88,8 +88,6 @@ export class PopUpPraticienComponent {
     return this.practitionerForm.get('roles') as FormArray;
   }
   ngOnInit() {
-    console.log(this.config.data.selectedPraticien);
-
     this.specialties = this.config.data.specialites;
     this.allOrganistions = this.config.data.organisations;
     if (this.config.data.selectedPraticien) {
@@ -133,37 +131,37 @@ export class PopUpPraticienComponent {
         );
         this.practitionerForm.setControl('telecom', this.fb.array(telecomArray));
       }
-
+      this.isLoading = true;
       // Rôles
       this.fhirService.getRolesByPractitionerId(res.id).subscribe((roles) => {
+
         this.praticiensRoles = roles;
-        console.log(roles);
-
         if (this.praticiensRoles && Array.isArray(this.praticiensRoles)) {
-        const roleControls = this.praticiensRoles.map((role: any) => {
-          console.log(role.id);
+          const roleControls = this.praticiensRoles.map((role: any) => {
 
-          const coding = role.code?.[0]?.coding?.[0] || {};
-          const organizationRef = role.location[0]?.reference || '';
-          const organizationId = organizationRef.split('/')?.[1] || '';
-          const speciality: any = this.specialties.find(s => s.code == coding.code);
-          return this.fb.group({
-            id: role.id,
-            serviceStart: [new Date(role.period?.start) || '', Validators.required],
-            serviceEnd: [role.period?.end ? new Date(role.period?.end) : role.period?.end || ''],
-            specialty: this.fb.group({
-              system: [speciality.system || 'https://mos.esante.gouv.fr/NOS/TRE_R32-StatutHospitalier/FHIR/TRE-R32-StatutHospitalier'],
-              code: [speciality.code || '', Validators.required],
-              display: [speciality.display || '']
-            }),
-            organizationId: [organizationId, Validators.required]
+
+            const coding = role.code?.[0]?.coding?.[0] || {};
+            const organizationRef = role.location[0]?.reference || '';
+            const organizationId = organizationRef.split('/')?.[1] || '';
+            const speciality: any = this.specialties.find(s => s.code == coding.code);
+            return this.fb.group({
+              id: role.id,
+              serviceStart: [new Date(role.period?.start) || '', Validators.required],
+              serviceEnd: [role.period?.end ? new Date(role.period?.end) : role.period?.end || ''],
+              specialty: this.fb.group({
+                system: [speciality.system || 'https://mos.esante.gouv.fr/NOS/TRE_R32-StatutHospitalier/FHIR/TRE-R32-StatutHospitalier'],
+                code: [speciality.code || '', Validators.required],
+                display: [speciality.display || '']
+              }),
+              organizationId: [organizationId, Validators.required]
+            });
           });
-        });
-        this.practitionerForm.setControl('roles', this.fb.array(roleControls));
-      }
+          this.practitionerForm.setControl('roles', this.fb.array(roleControls));
+          this.isLoading = false;
+        }
 
       });
-      
+
     } else {
       this.ajouterRole();
     }
@@ -175,12 +173,10 @@ export class PopUpPraticienComponent {
 
   submitForm() {
     if (this.config.data.selectedPraticien) {
-      console.log(this.practitionerForm.value);
 
       this.fhirService.updatePractitionerWithRoles(this.config.data.selectedPraticien.id, this.practitionerForm.value).subscribe(
         (praticien) => {
-          console.log(praticien);
-          
+
           this.ref?.close(praticien)
 
         },

@@ -1,4 +1,6 @@
-<form [formGroup]="practitionerForm" >
+<i class="pi pi-spin pi-spinner loader"  *ngIf="isLoading"></i>
+
+<form [formGroup]="practitionerForm" *ngIf="!isLoading" >
     <div class="grid">
         <!-- Colonne gauche -->
         <div class="col-6">
