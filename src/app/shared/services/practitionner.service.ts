@@ -41,8 +41,6 @@ export class PractitionnerService {
   }
 
   mapToPractitioner(resource: any): Practitioner {
-    console.log(resource);
-    
     return {
       resourceType: 'Practitioner',
       id: resource.id,

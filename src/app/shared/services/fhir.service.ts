@@ -54,9 +54,6 @@ export class FhirService {
       ...(input.photoBase64 ? { photo: [{ contentType: 'image/jpeg', data: input.photoBase64 }] } : {})
     };
 
-    console.log("reçu dans le service", resource);
-    
-
     return this.http.post<Practitioner>(`${this.base}/Practitioner`, resource, { headers: this.headers });
   }
 

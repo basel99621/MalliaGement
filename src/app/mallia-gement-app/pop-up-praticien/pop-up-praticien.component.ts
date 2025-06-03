@@ -92,10 +92,6 @@ export class PopUpPraticienComponent {
     this.allOrganistions = this.config.data.organisations;
     if (this.config.data.selectedPraticien) {
       const res = this.config.data.selectedPraticien;
-      console.log(res);
-      
-
-
       // Extraction des données du Practitioner FHIR
       const name = res.name || {};
       const identifier = res.identifier || [];
@@ -132,9 +128,6 @@ export class PopUpPraticienComponent {
           })
         );
         this.practitionerForm.setControl('telecom', this.fb.array(telecomArray));
-
-        console.log(this.practitionerForm);
-        
       }
       this.isLoading = true;
       // Rôles
@@ -188,8 +181,6 @@ export class PopUpPraticienComponent {
         });
 
     } else {
-      console.log("le format envoyé", this.practitionerForm.value);
-      
       this.fhirService.createPractitionerWithRoles(this.practitionerForm.value).subscribe(
         (praticien) => {
           this.ref?.close(praticien);
