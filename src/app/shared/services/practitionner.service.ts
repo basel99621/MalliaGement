@@ -7,13 +7,13 @@ import { Practitioner } from '../models/practitioner.model';
   providedIn: 'root'
 })
 export class PractitionnerService {
-  
-  private http = inject(HttpClient); 
-  public base = "https://fhir.chl.connected-health.fr/fhir/"; 
+
+  private http = inject(HttpClient);
+  public base = "https://fhir.chl.connected-health.fr/fhir/";
   private headers = new HttpHeaders({
     'Content-Type': 'application/fhir+json',
-    'Accept'      : 'application/fhir+json'
-  }); 
+    'Accept': 'application/fhir+json'
+  });
 
   getByRpps(rpps: string): Observable<Practitioner[]> {
     const params = new HttpParams()
@@ -40,35 +40,31 @@ export class PractitionnerService {
     );
   }
 
-  private mapToPractitioner(fhirPractitioner: any): Practitioner {
+  mapToPractitioner(resource: any): Practitioner {
+    console.log(resource);
+    
     return {
       resourceType: 'Practitioner',
-      id: fhirPractitioner.id,
-      identifier: fhirPractitioner.identifier.map((id: any) => ({
-        use: id.use || 'official',
-        system: id.system,
-        value: id.value,
-        type: id.type ? {
-          text: id.type.text,
-          coding: id.type.coding.map((coding: any) => ({
-            code: coding.code,
-            display: coding.display
-          }))
-        } : undefined
-      })),
+      id: resource.id,
+      identifier: resource.identifier || [],
       name: {
-        family: fhirPractitioner.name[0].family,
-        given: fhirPractitioner.name[0].given
+        family: resource.name?.[0]?.family ?? '',
+        given: resource.name?.[0]?.given ?? ['']
       },
-      telecom: fhirPractitioner.telecom.map((telecom: any) => {
-        if (telecom.system == 'email') {
-          return { system: 'email', value: telecom.value };
-        } else if (telecom.system == 'phone' && telecom.use == 'work') {
-          return { system: 'phone', use: 'work', value: telecom.value };
-        } else {
-          return { system: telecom.system, value: telecom.value };
-        }
-      }),
+      gender: resource.gender,
+      birthDate: resource.birthDate,
+      telecom: resource.telecom || [],
+      address: resource.address?.map((addr: any) => ({
+        line: addr.line || [],
+        city: addr.city,
+        postalCode: addr.postalCode,
+        country: addr.country
+      })),
+      photo: resource.photo?.map((p: any) => ({
+        contentType: p.contentType,
+        data: p.data
+      }))
     };
   }
+
 }

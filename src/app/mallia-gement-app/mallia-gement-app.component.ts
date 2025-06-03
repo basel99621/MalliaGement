@@ -110,7 +110,11 @@ export class MalliaGementAppComponent {
     this.practitionnerService.getPractitionersByUrl(url).subscribe(response => {
       this.totalRecords = response.total;
       this.allPratitiens[pageIndex] = response.entry;
+      console.log(response);
+      
       this.pratitiens = response.entry;
+      console.log(this.pratitiens);
+      
       
 
       const nextUrl = response.links.find((l: any) => l.relation === 'next')?.url;

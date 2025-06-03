@@ -34,7 +34,7 @@ export class PopUpPraticienComponent {
   genres: { id: string, name: string }[] = [
     { id: 'male', name: 'Homme' },
     { id: 'female', name: 'Femme' },
-    { id: 'outher', name: 'Autre' },
+    { id: 'other', name: 'Autre' },
     { id: 'unknown', name: 'Inconnu' }
   ];
 
@@ -92,6 +92,8 @@ export class PopUpPraticienComponent {
     this.allOrganistions = this.config.data.organisations;
     if (this.config.data.selectedPraticien) {
       const res = this.config.data.selectedPraticien;
+      console.log(res);
+      
 
 
       // Extraction des données du Practitioner FHIR
@@ -108,7 +110,7 @@ export class PopUpPraticienComponent {
         gender: res.gender || 'male',
         rpps: rpps,
         matricule: matricule,
-        birthDate: res.birthDate || '',
+        birthDate: res.birthDate ? new Date(res.birthDate) : '',
         city: res.address?.[0]?.city || '',
         postalCode: res.address?.[0]?.postalCode || '',
         country: res.address?.[0]?.country || '',
@@ -130,6 +132,9 @@ export class PopUpPraticienComponent {
           })
         );
         this.practitionerForm.setControl('telecom', this.fb.array(telecomArray));
+
+        console.log(this.practitionerForm);
+        
       }
       this.isLoading = true;
       // Rôles
@@ -173,7 +178,7 @@ export class PopUpPraticienComponent {
 
   submitForm() {
     if (this.config.data.selectedPraticien) {
-      this.fhirService.updatePractitioner(this.config.data.selectedPraticien.id, this.practitionerForm.value).subscribe(
+      this.fhirService.updatePractitionerWithRoles(this.config.data.selectedPraticien.id, this.practitionerForm.value).subscribe(
         (praticien) => {
           this.ref?.close(praticien);
         },
@@ -183,6 +188,8 @@ export class PopUpPraticienComponent {
         });
 
     } else {
+      console.log("le format envoyé", this.practitionerForm.value);
+      
       this.fhirService.createPractitionerWithRoles(this.practitionerForm.value).subscribe(
         (praticien) => {
           this.ref?.close(praticien);
