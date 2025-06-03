@@ -275,6 +275,48 @@ export class FhirService {
     return this.http.get(`${this.base}/Schedule`, { headers: this.headers, params });
   }
 
+  getAppointmentsWithPatientsByPractitionerId(practitionerId: string | undefined): Observable<any[]> {
+  const url = `${this.base}/Appointment?actor=Practitioner/${practitionerId}`;
+  
+  return this.http.get<any>(url, { headers: this.headers }).pipe(
+    switchMap(bundle => {
+      const appointments = bundle.entry?.map((entry: any) => entry.resource) || [];
+
+      // Extraire les IDs des patients uniques à partir des participants
+      const patientIds = Array.from(new Set(
+        appointments
+          .flatMap((appt: any) =>
+            appt.participant
+              ?.filter((p: any) => p.actor.reference.startsWith('Patient/'))
+              .map((p: any) => p.actor.reference.split('/')[1])
+          )
+      ));
+
+      // Requêtes pour récupérer les ressources Patient
+      const patientRequests = patientIds.map(id =>
+        this.http.get(`${this.base}/Patient/${id}`, { headers: this.headers })
+      );
+
+      return forkJoin(patientRequests).pipe(
+        map(patients => {
+          // Associer les patients aux rendez-vous
+          return appointments.map((appt: any) => {
+            const patientRef = appt.participant?.find(
+              (p: any) => p.actor.reference.startsWith('Patient/')
+            )?.actor.reference;
+
+            const patientId = patientRef?.split('/')[1];
+            const patient = patients.find((p: any) => p.id === patientId);
+
+            return { appointment: appt, patient };
+          });
+        })
+      );
+    })
+  );
+}
+
+
   /** GET Appointment by RPPS (enchaîné) */
   getAppointmentsByPractitionerRpps(rpps: string): Observable<any> {
     return this.getPractitionerByRpps(rpps).pipe(

@@ -137,13 +137,11 @@ export class PopUpPraticienComponent {
           const organizationRef = role.location[0]?.reference || '';
           const organizationId = organizationRef.split('/')?.[1] || '';
           const speciality: any = this.specialties.find(s => s.code == coding.code);
-
-
           return this.fb.group({
             serviceStart: [new Date(role.period?.start) || '', Validators.required],
-            serviceEnd: [new Date(role.period?.end) || ''],
+            serviceEnd: [role.period?.end ? new Date(role.period?.end) : role.period?.end || ''],
             specialty: this.fb.group({
-              system: [speciality.system || 'http://snomed.info/sct'],
+              system: [speciality.system || 'https://mos.esante.gouv.fr/NOS/TRE_R32-StatutHospitalier/FHIR/TRE-R32-StatutHospitalier'],
               code: [speciality.code || '', Validators.required],
               display: [speciality.display || '']
             }),
@@ -152,7 +150,6 @@ export class PopUpPraticienComponent {
         });
         this.practitionerForm.setControl('roles', this.fb.array(roleControls));
       }
-
     } else {
       this.ajouterRole();
     }
@@ -191,7 +188,7 @@ export class PopUpPraticienComponent {
       serviceStart: ['', Validators.required],
       serviceEnd: [''],
       specialty: this.fb.group({
-        system: ['http://snomed.info/sct'],  // valeur par défaut
+        system: ['https://mos.esante.gouv.fr/NOS/TRE_R32-StatutHospitalier/FHIR/TRE-R32-StatutHospitalier'],  // valeur par défaut
         code: ['', Validators.required],
         display: ['']
       }),

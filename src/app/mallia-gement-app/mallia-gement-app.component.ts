@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { Appointment } from '../shared/models/appointment.model';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
@@ -9,9 +8,10 @@ import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { PopUpPraticienComponent } from './pop-up-praticien/pop-up-praticien.component';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
-import { FhirService, PractitionerWithRoleInput } from '../shared/services/fhir.service';
+import { FhirService } from '../shared/services/fhir.service';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { combineLatest } from 'rxjs';
+import { PopUpAppointmentsComponent } from './pop-up-appointments/pop-up-appointments.component';
 
 @Component({
   selector: 'app-mallia-gement-app',
@@ -40,12 +40,15 @@ export class MalliaGementAppComponent {
 
   specialites: any[] = [];
 
+  isLoading: boolean = false;
+
   constructor(public dialogService: DialogService,
     public messageService: MessageService,
     private fhirService: FhirService,
     private confirmationService: ConfirmationService) { }
 
   ngOnInit() {
+    this.isLoading = true;
 
 
     combineLatest([
@@ -57,7 +60,6 @@ export class MalliaGementAppComponent {
       next: ([specialites, organisations, praticiens, praticiensRole]) => {
         // ---- Specialités ----
         this.specialites = specialites?.expansion?.contains ?? [];
-
         // ---- Organisations ----
         if (Array.isArray(organisations.entry)) {
           this.allOrganistions = organisations.entry.map((org: any) => ({
@@ -89,6 +91,7 @@ export class MalliaGementAppComponent {
         } else {
           console.error('praticiensRole n\'est pas un tableau :', praticiensRole);
         }
+        this.isLoading = false;
       },
       error: err => {
         console.error('Erreur lors du chargement des données :', err);
@@ -105,6 +108,7 @@ export class MalliaGementAppComponent {
         width: '70%',
         contentStyle: { overflow: 'auto', height: 'auto' },
         baseZIndex: 10000,
+        closable: true,
         data: {
           specialites: this.specialites,
           organisations: this.allOrganistions
@@ -135,6 +139,7 @@ export class MalliaGementAppComponent {
         width: '70%',
         contentStyle: { overflow: 'auto', height: 'auto' },
         baseZIndex: 10000,
+        closable: true,
         data: {
           selectedPraticien: this.selectedPraticienToUpdate,
           specialites: this.specialites,
@@ -151,6 +156,23 @@ export class MalliaGementAppComponent {
       });
     }
 
+
+  }
+
+  openAppointmentsPopUp() {
+    
+    this.ref = this.dialogService.open(PopUpAppointmentsComponent, {
+      header: 'Les rendez vous du praticien' + " - " + this.selectedPraticien?.getNomPrenom(),
+      width: '70%',
+      contentStyle: { overflow: 'auto', height: 'auto' },
+      baseZIndex: 10000,
+      closable: true,
+      data: {
+        selectedPraticien: this.selectedPraticien,
+        specialites: this.specialites,
+        organisations: this.allOrganistions
+      }
+    });
 
   }
 

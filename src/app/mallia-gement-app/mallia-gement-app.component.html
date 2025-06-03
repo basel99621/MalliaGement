@@ -1,6 +1,7 @@
 
+<i class="pi pi-spin pi-spinner loader"  *ngIf="isLoading"></i>
 <p-toast/>
-<div class="praticien-container">
+<div class="praticien-container" *ngIf="!isLoading">
     <div>
          <p-select [options]="allPraticiens" [(ngModel)]="selectedPraticien" optionLabel="getNomPrenom" [filter]="true"
             filterBy="nom" [showClear]="true" placeholder="Sélectionnez un praticien" class="w-full md:w-56">
@@ -22,6 +23,7 @@
             <p-button icon="pi pi-pen-to-square" severity="secondary" (onClick)="openPraticienPopUp(false)"  />
             <p-confirmdialog />
             <p-button icon="pi pi-trash" severity="danger" (click)="confirmerSuppression($event)"/>
+            <p-button label="Afficher les rendez-vous" [raised]="true" severity="success" (click)="openAppointmentsPopUp()" />
         </ng-container>
     </div>
 </div>
