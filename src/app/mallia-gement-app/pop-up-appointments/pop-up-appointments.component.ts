@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { FhirService } from '../../shared/services/fhir.service';
 import { DynamicDialogConfig } from 'primeng/dynamicdialog';
 import { TableModule } from 'primeng/table';
-import { NgIf } from '@angular/common'; // ⬅️ nécessaire
+import { NgIf } from '@angular/common'; 
 import { CommonModule } from '@angular/common';
 
 @Component({
