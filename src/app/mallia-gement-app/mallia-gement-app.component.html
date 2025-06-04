@@ -1,63 +1,59 @@
-
-
-<i class="pi pi-spin pi-spinner loader"  *ngIf="isLoading"></i>
-<p-toast/>
+<i class="pi pi-spin pi-spinner loader" *ngIf="isLoading"></i>
+<p-toast />
 <p-confirmdialog />
 <div *ngIf="!isLoading" class="style-page">
     <h1 class="titre-page">Gestion des praticiens</h1>
     <div class="width div1">
         <div>
             <p-inputGroup>
-                <input pInputText placeholder="Rechercher par RPPS" [(ngModel)]="searchRPPS"
-                        maxlength="11" (input)="onInputSearchRPPS()" class="input-rpps"/>
+                <input pInputText placeholder="Rechercher par RPPS" [(ngModel)]="searchRPPS" maxlength="11"
+                    (input)="onInputSearchRPPS()" class="input-rpps" />
                 <p-inputGroupAddon>
-                    <p-button icon="pi pi-search" severity="primary" variant="text"
-                        (click)="onSearchRPPS()" [disabled]="!searchRPPS">
+                    <p-button icon="pi pi-search" severity="primary" variant="text" (click)="onSearchRPPS()"
+                        [disabled]="!searchRPPS">
                     </p-button>
                 </p-inputGroupAddon>
             </p-inputGroup>
         </div>
-        
+
 
         <div>
             <p-button [outlined]="true" severity="success" (onClick)="openPraticienPopUp(true)">
                 <i class="fa-solid fa-plus"></i> Ajouter un pratitien
-            </p-button> 
-        </div>     
+            </p-button>
+        </div>
     </div>
-    
+
     <div class="width">
-            <p-table [value]="pratitiens" [paginator]="true" [rows]="5" [lazy]="true" 
-                (onPage)="loadMedecins($event)" [totalRecords] = "totalRecords">
-                <ng-template pTemplate="header">
-                    <tr>
+        <p-table [value]="pratitiens" [paginator]="true" [rows]="5" [lazy]="true" (onPage)="loadMedecins($event)"
+            [totalRecords]="totalRecords">
+            <ng-template pTemplate="header">
+                <tr>
                     <th class="fixed-col-nom">Nom</th>
                     <th class="fixed-col-prenom">Prénom</th>
                     <th class="fixed-col-rpps">RPPS</th>
                     <th class="fixed-col-actions">Actions</th>
-                    </tr>
-                </ng-template>
-                <ng-template pTemplate="body" let-praticien>
-                    <tr>
-                        <td>{{ praticien.name.family }}</td>
-                        <td>{{ praticien.name.given[0] }}</td>
-                        <td>{{ getRPPS(praticien) }}</td>
-                        <td class="action-boutons">
-                            <p-button [rounded]="true" [text]="true" (click)="openPraticienPopUp(false, praticien)">
-                                <i class="fa-solid fa-pen"></i>
-                            </p-button>
-                            
-                            <p-button [rounded]="true" [text]="true" (click)="confirmerSuppression($event, praticien)">
-                                <i class="fa-solid fa-trash"></i>
-                            </p-button>
-                            <p-button [rounded]="true" [text]="true" (click)="openAppointmentsPopUp(praticien)">
-                                <i class="fa-solid fa-list"></i>
-                            </p-button>
-                        </td>
-                    </tr>
-                </ng-template>
-            </p-table>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-praticien>
+                <tr>
+                    <td>{{ praticien.name?.family }}</td>
+                    <td>{{ praticien.name?.given?.[0] || '' }}</td>
+                    <td>{{ getRPPS(praticien) }}</td>
+                    <td class="action-boutons">
+                        <p-button [rounded]="true" [text]="true" (click)="openPraticienPopUp(false, praticien)">
+                            <i class="fa-solid fa-pen"></i>
+                        </p-button>
+
+                        <p-button [rounded]="true" [text]="true" (click)="confirmerSuppression($event, praticien)">
+                            <i class="fa-solid fa-trash"></i>
+                        </p-button>
+                        <p-button [rounded]="true" [text]="true" (click)="openAppointmentsPopUp(praticien)">
+                            <i class="fa-solid fa-list"></i>
+                        </p-button>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
     </div>
 </div>
-
-    

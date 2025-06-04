@@ -134,6 +134,7 @@ export class PopUpPraticienComponent {
       this.fhirService.getRolesByPractitionerId(res.id).subscribe((roles) => {
 
         this.praticiensRoles = roles;
+        
         if (this.praticiensRoles && Array.isArray(this.praticiensRoles)) {
           const roleControls = this.praticiensRoles.map((role: any) => {
 

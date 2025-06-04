@@ -178,13 +178,6 @@ export class MalliaGementAppComponent {
 
       this.ref.onClose.subscribe((praticien) => {
         if (praticien) {
-          let newPraticien: Praticien = new Praticien({
-            id: praticien.practitioner.id,
-            nom: praticien.practitioner.name[0].family,
-            prenom: praticien.practitioner.name[0].given[0],
-          });
-
-          this.allPratitiens[0].push(this.praticienToPractitioner(newPraticien));
           this.pratitiens.push(praticien);
           this.messageService.add({ severity: 'success', summary: 'Success', detail: "Le praticien a été ajouté avec succèss !" });
         } else if (praticien == true) {
@@ -211,6 +204,9 @@ export class MalliaGementAppComponent {
 
       this.ref.onClose.subscribe((praticien) => {
         if (praticien) {
+          this.pratitiens = this.pratitiens.filter(p => p.id != praticien.practitioner.id);
+          this.pratitiens.push(praticien.practitioner);
+          this.loadMedecins({ first: 0, rows: 5 });
           this.messageService.add({ severity: 'success', summary: 'Success', detail: "Le praticien a été modifié avec succèss !" });
         } else if (praticien == true) {
           this.messageService.add({ severity: 'errors', summary: 'Error', detail: "Une erreur est survenue !" });
