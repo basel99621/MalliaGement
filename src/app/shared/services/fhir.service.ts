@@ -25,7 +25,7 @@ export class FhirService {
         {
           use: 'official',
           system: 'https://hl7.fr/ig/fhir/core/CodeSystem/fr-core-cs-v2-0203',
-          value: input.matricule,
+          value: input.rpps, // dans notre cas le RPPS est aussi l'identifiant interne
           type: {
             text: 'Matricule',
             coding: [{ code: 'INTRN', display: 'Identifiant interne' }]
